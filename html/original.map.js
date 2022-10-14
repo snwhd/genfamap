@@ -114,7 +114,12 @@ window.onload = (event) => {
             [ "Ranger",         43, [0.81, 2.63] ],
             [ "Brute Leech",    44, [0.93, 2.74] ],
             [ "Brute Leech",    44, [0.76, 2.81] ],
-            [ "Brute Leech",    44, [0.77, 2.95] ]
+            [ "Brute Leech",    44, [0.77, 2.95] ],
+
+            // SE Emerald City
+            [ "shroomy",         50, [-2.23, 0.76] ],
+            [ "Bandit Chieftan", 53, [-2.49, 0.92] ],
+            [ "Blue Minotaur",   49, [-2.78, 0.87] ]
 
         ],
 
@@ -136,13 +141,19 @@ window.onload = (event) => {
             [ "Ogre Husband",     35, [2.39, 1.00] ],
 
             // cent dungeon
-            [ "Unlucky Miner", 48, [1.98, -0.23] ],
+            [ "Mimic",         55, [1.92, -0.28] ],
             [ "Tan Rat",       38, [2.02, -0.21] ],
             [ "Tan Rat",       38, [2.06, -0.14] ],
             [ "Tan Rat",       38, [1.95, -0.15] ],
+            [ "Tan Rat",       38, [1.84, -0.14] ],
             [ "Brute Leech",   44, [2.15, -0.08] ],
             [ "Brute Leech",   44, [1.99, -0.10] ],
-            [ "Unlucky Miner",     48, [1.98, -0.23] ]
+            [ "Unlucky Miner", 48, [1.98, -0.23] ],
+            [ "Unlucky Miner", 48, [2.05,  0.08] ],
+            [ "Unlucky Miner", 48, [2.20, -0.23] ],
+            [ "Unlucky Miner", 48, [2.16, -0.21] ],
+            [ "Draonworm",     50, [2.03, -0.02] ],
+            [ "Shroomy",       54, [1.99,  0.09] ]
 
             // camp dungeon
             // TODO
@@ -176,9 +187,17 @@ window.onload = (event) => {
         shadowSize: [41, 41]
     });
 
-    // preload some icons
     var redIcon = new L.Icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    var yellowIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         iconSize: [25, 41],
         iconAnchor: [12, 41],
@@ -421,6 +440,12 @@ window.onload = (event) => {
 
             var centCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.04_-0.29">Cave To Dungeon</a>';
             L.marker([-0.26, 0.09], {icon: purpleIcon}).bindPopup(centCavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var shortcutCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#1.85_-0.04">Shortcut to Dungeon</a>';
+            L.marker([-0.55, 0.37], {icon: purpleIcon}).bindPopup(shortcutCavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var monstermashCavePopup = 'Quest: Monster Mash';
+            L.marker([-0.48, 2.29], {icon: yellowIcon}).bindPopup(monstermashCavePopup).on('click', markerClicked).addTo(locationGroup);
             break;
         case 'fae':
             var faePopup = '<a href="https://genfamap.snwhd.com/#0.7_-0.9">Crystal To World</a>';
@@ -441,7 +466,18 @@ window.onload = (event) => {
 
             var centCavePopup = '<a href="https://genfamap.snwhd.com/#-0.26_0.09">Cave to World</a>';
             L.marker([2.04, -0.29], {icon: purpleIcon}).bindPopup(centCavePopup).on('click', markerClicked).addTo(locationGroup);
-            break;
+
+            var deeperCavePopup = 'Cave To Deeper Dungeon (no map yet)';
+            L.marker([1.93, -0.29], {icon: purpleIcon}).bindPopup(deeperCavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var shortcutCavePopup = '<a href="https://genfamap.snwhd.com/#-0.55_0.37">Shortcut to World</a>';
+            L.marker([1.85, -0.04], {icon: purpleIcon}).bindPopup(shortcutCavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var keyPopup = 'Shortcut Key';
+            L.marker([1.95,  0.14], {icon: yellowIcon}).bindPopup(keyPopup).on('click', markerClicked).addTo(locationGroup);
+
+            var orePopup = 'Jasper Ore';
+            L.marker([2.15, -0.22], {icon: yellowIcon}).bindPopup(orePopup).on('click', markerClicked).addTo(locationGroup);
 
             // For the dungeon map only, make the bg black
             for (var c of document.querySelectorAll('.leaflet-container')) {

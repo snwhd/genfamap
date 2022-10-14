@@ -343,14 +343,14 @@ def cmd_render(args):
     #             tile = objdata['']
 
     # preload icon images
-    icon_images = {}
-    for filename in os.listdir(os.path.join(CACHE_DIR, IMAGES_DIR)):
-        if filename.endswith('.png'):
-            icon = filename.split('.')[0]
-            icon_images[icon] = Image.open(open(
-                os.path.join(CACHE_DIR, IMAGES_DIR, filename),
-                'rb',
-            ))
+    # icon_images = {}
+    # for filename in os.listdir(os.path.join(CACHE_DIR, IMAGES_DIR)):
+    #     if filename.endswith('.png'):
+    #         icon = filename.split('.')[0]
+    #         icon_images[icon] = Image.open(open(
+    #             os.path.join(CACHE_DIR, IMAGES_DIR, filename),
+    #             'rb',
+    #         ))
 
     # # add icons
     # for filename, data in map_files.items():
@@ -377,10 +377,10 @@ def cmd_render(args):
 
     # scale up some more
     scale_size = 2
-    img = img.resize(
-        (img.width * scale_size, img.height * scale_size),
-        Image.NEAREST,
-    ) 
+    # img = img.resize(
+    #     (img.width * scale_size, img.height * scale_size),
+    #     Image.NEAREST,
+    # ) 
 
     img.save(args.filename)
 
