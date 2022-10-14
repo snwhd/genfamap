@@ -52,14 +52,6 @@ window.onload = (event) => {
             [ "Cow",                   8, [-0.45, 1.35] ],
             [ "Baby Water Elemental", 11, [-0.20, 1.50] ],
 
-            // town east of coyn
-            [ "Ranger",        42, [-0.70, 2.20] ],
-            [ "Skeleton",      36, [-0.50, 2.35] ],
-            [ "Zombie",        40, [-0.20, 2.40] ],
-            [ "Caer Rabbit",   37, [-0.60, 2.50] ],
-            [ "Skeleton",      42, [-0.45, 2.60] ],
-            [ "Halloween Bat", 35, [-0.35, 2.75] ],
-
             // iron road
             [ "Albino Leech", 17, [-0.15, 1.95] ],
             [ "Frog",         12, [0.11, 1.75] ],
@@ -97,7 +89,32 @@ window.onload = (event) => {
             [ "Troll",                 34, [-1.85, -1.25] ],
             [ "Treefolk",              35, [-1.90, -1.10] ],
             [ "Shadowstalker Gremlin", 34, [-1.75, -1.10] ],
-            [ "Forest Owl",            29, [-1.75, -0.90] ]
+            [ "Forest Owl",            29, [-1.75, -0.90] ],
+
+            // Kosten Ridge
+            [ "Ranger",        42, [-0.70, 2.20] ],
+            [ "Skeleton",      36, [-0.50, 2.35] ],
+            [ "Zombie",        40, [-0.20, 2.40] ],
+            [ "Caer Rabbit",   37, [-0.60, 2.50] ],
+            [ "Skeleton",      42, [-0.45, 2.60] ],
+            [ "Halloween Bat", 35, [-0.70, 2.75] ],
+
+            [ "Ranger",         43, [-0.93, 2.91] ],
+            [ "Envious Ghost",  40, [-0.85, 3.28] ],
+            [ "Plague Rat",     42, [-0.85, 3.35] ],
+            [ "Zombie",         40, [-0.81, 3.55] ],
+            [ "Plague Rat",     42, [-0.61, 3.67] ],
+            [ "Vengeful Ghost", 35, [-0.53, 3.45] ],
+            [ "Plague Rat",     42, [-0.27, 3.44] ],
+            [ "Envious Ghost",  40, [-0.13, 3.39] ],
+            [ "Ghost",          24, [-0.28, 3.03] ],
+            [ "Zombie",         40, [-0.07, 2.51] ],
+            [ "Ranger",         43, [0.155, 2.35] ],
+            [ "Rogue",          43, [0.43, 2.17] ],
+            [ "Ranger",         43, [0.81, 2.63] ],
+            [ "Brute Leech",    44, [0.93, 2.74] ],
+            [ "Brute Leech",    44, [0.76, 2.81] ],
+            [ "Brute Leech",    44, [0.77, 2.95] ]
 
         ],
 
@@ -105,21 +122,37 @@ window.onload = (event) => {
 	    ],
 
 	    "dungeon": [
-            [ "Crab",             16, [2.27, 0.71] ],
-            [ "Rat",              13, [2.62, 0.84] ],
-            [ "Cave Crab",        12, [2.54, 0.84] ],
-            [ "Red Cave Crab",    23, [2.61, 0.93] ],
-            [ "Goblin",           12, [2.52, 0.75] ],
-            [ "Armored Goblin",   16, [2.50, 0.76] ],
-            [ "Feral Goblin",     23, [2.65, 0.76] ],
-            [ "Monstrous Spider", 20, [2.52, 0.92] ],
-            [ "Feral Goblin",     23, [2.46, 0.87] ],
-            [ "Ogre Wife",        38, [2.39, 0.85] ],
-            [ "Ogre Husband",     35, [2.39, 0.89] ]
+            // northeast dungeon
+            [ "Crab",             16, [2.27, 0.82] ],
+            [ "Rat",              13, [2.62, 0.95] ],
+            [ "Cave Crab",        12, [2.54, 0.95] ],
+            [ "Red Cave Crab",    23, [2.61, 1.04] ],
+            [ "Goblin",           12, [2.52, 0.86] ],
+            [ "Armored Goblin",   16, [2.50, 0.87] ],
+            [ "Feral Goblin",     23, [2.65, 0.87] ],
+            [ "Monstrous Spider", 20, [2.52, 1.03] ],
+            [ "Feral Goblin",     23, [2.46, 0.98] ],
+            [ "Ogre Wife",        38, [2.39, 0.97] ],
+            [ "Ogre Husband",     35, [2.39, 1.00] ],
+
+            // cent dungeon
+            [ "Unlucky Miner", 48, [1.98, -0.23] ],
+            [ "Tan Rat",       38, [2.02, -0.21] ],
+            [ "Tan Rat",       38, [2.06, -0.14] ],
+            [ "Tan Rat",       38, [1.95, -0.15] ],
+            [ "Brute Leech",   44, [2.15, -0.08] ],
+            [ "Brute Leech",   44, [1.99, -0.10] ],
+            [ "Unlucky Miner",     48, [1.98, -0.23] ]
+
+            // camp dungeon
+            // TODO
 	    ]
     };;
 
     var bossNames = [
+        "Ogre Wife",
+        "Ogre Husband",
+        "Jack"
     ];
 
     var imageUrls = {
@@ -128,9 +161,9 @@ window.onload = (event) => {
         'dungeon': 'https://genfamap.snwhd.com/dungeon.png',
     };
     var dimensions = {
-        'world': [ -2, -3, 3, 2 ],
+        'world': [ -2, -3, 4, 2 ],
         'fae': [-1, 0, 1, 1],
-        'dungeon': [-2, 0, 2, 3]
+        'dungeon': [-2, 0, 3, 3]
     };
 
     // preload some icons
@@ -160,13 +193,15 @@ window.onload = (event) => {
     var currentAnchorY = -100;
     var currentAnchorZoom = -100;
 
+    var ignoreAnchorClick = false;
+
     function viewToAnchor() {
         var oX = 0;
         var oY = 0;
         var zoom = 0.85;
         var anchor = window.location.hash.substr(1);
         if (anchor != '') {
-            var pieces = anchor.split('$');
+            var pieces = anchor.split('_');
             if (pieces.length > 0 && pieces[0] == 'route') {
                 pieces.shift();
                 handleRouteAnchor(pieces);
@@ -201,6 +236,7 @@ window.onload = (event) => {
                             let llat = layer.getLatLng().lat;
                             let llng = layer.getLatLng().lng;
                             if (llat == oX && llng == oY) {
+                                ignoreAnchorClick = true;
                                 layer.fire('click');
                             }
                         }
@@ -211,13 +247,17 @@ window.onload = (event) => {
     }
 
     function setAnchorForView(lat, lon, zoom) {
+        if (ignoreAnchorClick) {
+            ignoreAnchorClick = false;
+            return;
+        }
         zoom = (zoom - minZoom) / (maxZoom - minZoom);
         zoom = Math.round(zoom * 100) / 100;
         // set these so that we don't move
         currentAnchorX = lat;
         currentAnchorY = lon;
         currentAnchorZoom = zoom;
-        window.location.hash = '#' + lat + '$' + lon + '$' + zoom;
+        window.location.hash = '#' + lat + '_' + lon + '_' + zoom;
     }
 
 
@@ -252,6 +292,9 @@ window.onload = (event) => {
         routing = !routing;
         if (routing) {
             window.location.hash = '#route';
+            document.getElementById('routebutton').innerText = 'End Route';
+        } else {
+            document.getElementById('routebutton').innerText = 'Start Route';
         }
     }
 
@@ -260,7 +303,7 @@ window.onload = (event) => {
             window.location.hash = '#route';
         }
 
-        var newPoint = '$' + lat + '$' + lon;
+        var newPoint = '_' + lat + '_' + lon;
         window.location.hash = window.location.hash + newPoint;
     }
         
@@ -361,31 +404,44 @@ window.onload = (event) => {
 
     switch (mapName) {
         case 'world':
-            var faePopup = '<a href="https://genfamap.snwhd.com/fae#0.86$-0.93">Crystal To Fae</a>';
+            var faePopup = '<a href="https://genfamap.snwhd.com/fae#0.86_-0.93">Crystal To Fae</a>';
             L.marker([0.70, -0.90], {icon: purpleIcon}).bindPopup(faePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var neCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.69$0.85">Stairs To Dungeon</a>';
+            var neCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.69_0.96">Stairs To Dungeon</a>';
             L.marker([0.60,  1.56], {icon: purpleIcon}).bindPopup(neCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var crabCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.28$0.72">Trapdoor To Dungeon</a>';
+            var crabCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.28_0.83">Trapdoor To Dungeon</a>';
             L.marker([0.04,  1.40], {icon: purpleIcon}).bindPopup(crabCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var ratCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.91$-0.03">Trapdoor To Dungeon</a>';
+            var ratCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.91_1.08">Trapdoor To Dungeon</a>';
             L.marker([0.90,  0.47], {icon: purpleIcon}).bindPopup(ratCavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var campCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.77_0.60">Trapdoor To Dungeon</a>';
+            L.marker([0.69,  1.11], {icon: purpleIcon}).bindPopup(campCavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var centCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.04_-0.29">Cave To Dungeon</a>';
+            L.marker([-0.26, 0.09], {icon: purpleIcon}).bindPopup(centCavePopup).on('click', markerClicked).addTo(locationGroup);
             break;
         case 'fae':
-            var faePopup = '<a href="https://genfamap.snwhd.com/#0.7$-0.9">Crystal To World</a>';
+            var faePopup = '<a href="https://genfamap.snwhd.com/#0.7_-0.9">Crystal To World</a>';
             L.marker([0.86, -0.93], {icon: purpleIcon}).bindPopup(faePopup).on('click', markerClicked).addTo(locationGroup);
             break;
         case 'dungeon':
-            var neCavePopup = '<a href="https://genfamap.snwhd.com/#0.6$1.56">Stairs To World</a>';
-            L.marker([2.69,  0.85], {icon: purpleIcon}).bindPopup(neCavePopup).on('click', markerClicked).addTo(locationGroup);
+            var neCavePopup = '<a href="https://genfamap.snwhd.com/#0.6_1.56">Stairs To World</a>';
+            L.marker([2.69,  0.96], {icon: purpleIcon}).bindPopup(neCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var crabCavePopup = '<a href="https://genfamap.snwhd.com/#0.04$1.40">Ladder To World</a>';
-            L.marker([2.28,  0.72], {icon: purpleIcon}).bindPopup(crabCavePopup).on('click', markerClicked).addTo(locationGroup);
+            var crabCavePopup = '<a href="https://genfamap.snwhd.com/#0.04_1.40">Ladder To World</a>';
+            L.marker([2.28,  0.83], {icon: purpleIcon}).bindPopup(crabCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var ratCavePopup = '<a href="https://genfamap.snwhd.com/#0.9$0.47">Ladder To World</a>';
-            L.marker([2.91, -0.03], {icon: purpleIcon}).bindPopup(ratCavePopup).on('click', markerClicked).addTo(locationGroup);
+            var ratCavePopup = '<a href="https://genfamap.snwhd.com/#0.9_0.47">Ladder To World</a>';
+            L.marker([2.91, 0.08], {icon: purpleIcon}).bindPopup(ratCavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var campCavePopup = '<a href="https://genfamap.snwhd.com/#0.69_1.11">Ladder to World</a>';
+            L.marker([2.77,  0.60], {icon: purpleIcon}).bindPopup(campCavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var centCavePopup = '<a href="https://genfamap.snwhd.com/#-0.26_0.09">Cave to World</a>';
+            L.marker([2.04, -0.29], {icon: purpleIcon}).bindPopup(centCavePopup).on('click', markerClicked).addTo(locationGroup);
+            break;
 
             // For the dungeon map only, make the bg black
             for (var c of document.querySelectorAll('.leaflet-container')) {
