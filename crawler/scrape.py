@@ -15,7 +15,7 @@ import os
 
 
 CACHE_DIR = 'files'
-CACHE_VERSION = '0.100'
+CACHE_VERSION = '0.101'
 STATIC_ENDPOINT = f'https://genfanad-static.s3.us-east-2.amazonaws.com/versioned/{CACHE_VERSION}/data_client'
 IMAGES_DIR = 'img'
 HTML_DIR = 'html'
@@ -93,8 +93,8 @@ def get_segment_zip(
 
     # not cached
     if data is None:
-        print(f'fetching {filename}')
         uri = staticURI(filename)
+        print(f'fetching {uri}')
         response = requests.get(
             uri,
             params = {
