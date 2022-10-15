@@ -119,11 +119,30 @@ window.onload = (event) => {
             // SE Emerald City
             [ "shroomy",         50, [-2.23, 0.76] ],
             [ "Bandit Chieftan", 53, [-2.49, 0.92] ],
-            [ "Blue Minotaur",   49, [-2.78, 0.87] ]
+            [ "Blue Minotaur",   49, [-2.78, 0.87] ],
+
+            [ "Hobgoblin",   35, [ -0.90, 3.87] ]
 
         ],
 
 	    "fae": [
+            [ "Imp", 47, [0.21, -0.32] ],
+            [ "Gremlin", 23, [ 0.30, -0.07] ],
+            [ "Snowy Owl", 34, [ 0.17, -0.06] ],
+            [ "Pixie", 50, [ 0.03, -0.08] ],
+            [ "Pixie", 50, [ 0.24, 0.07] ],
+            [ "Pixie", 50, [ 0.11, 0.12] ],
+            [ "Icy Goat", 40, [ 0.23,  0.40] ],
+            [ "Snowy Owl", 34, [ 0.19,  0.41] ],
+            [ "Cyan Ghost", 63, [ 0.13,  0.70] ],
+            [ "Shadowstalker Gremlin", 34, [ 0.31,  0.78] ],
+            [ "Soulwarden Lich", 30, [ 0.04,  0.78] ],
+            [ "Pixie", 50, [ 0.03,  0.96] ],
+            [ "Cyan Ghost", 63, [ 0.14,  0.89] ],
+            [ "Druid Poet", 49, [ 0.41,  0.78] ],
+            [ "Spirit Siphoning Jellyfish", 60, [ 0.53,  0.90] ],
+            [ "Sticky Jellyfish", 40, [ 0.66,  0.72] ],
+            [ "Enriched Treefolk", 48, [ 0.51,  0.72] ]
 	    ],
 
 	    "dungeon": [
@@ -153,10 +172,19 @@ window.onload = (event) => {
             [ "Unlucky Miner", 48, [2.20, -0.23] ],
             [ "Unlucky Miner", 48, [2.16, -0.21] ],
             [ "Draonworm",     50, [2.03, -0.02] ],
-            [ "Shroomy",       54, [1.99,  0.09] ]
+            [ "Shroomy",       54, [1.99,  0.09] ],
 
             // camp dungeon
             // TODO
+
+            // druid dungeon
+            [ "Bear",       48, [0.23, -0.25] ],
+            [ "Druid Sage", 55, [0.16, -0.23] ],
+
+            // Kosten Tunnel
+            [ "Halloween Bat",    35, [1.81,  2.78] ],
+            [ "Halloween Bat",    35, [1.66,  2.79] ],
+            [ "Poison Crocodile", 38, [1.72,  2.70] ]
 	    ]
     };;
 
@@ -198,6 +226,15 @@ window.onload = (event) => {
 
     var yellowIcon = new L.Icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    var orangeIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         iconSize: [25, 41],
         iconAnchor: [12, 41],
@@ -426,45 +463,63 @@ window.onload = (event) => {
             var faePopup = '<a href="https://genfamap.snwhd.com/fae#0.86_-0.93">Crystal To Fae</a>';
             L.marker([0.70, -0.90], {icon: purpleIcon}).bindPopup(faePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var neCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.69_0.96">Stairs To Dungeon</a>';
+            var neCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.69_0.96">Ogre Dungeon</a>';
             L.marker([0.60,  1.56], {icon: purpleIcon}).bindPopup(neCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var crabCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.28_0.83">Trapdoor To Dungeon</a>';
+            var crabCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.28_0.83">Crab Cave</a>';
             L.marker([0.04,  1.40], {icon: purpleIcon}).bindPopup(crabCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var ratCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.91_1.08">Trapdoor To Dungeon</a>';
+            var ratCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.91_1.08">Rat Cave</a>';
             L.marker([0.90,  0.47], {icon: purpleIcon}).bindPopup(ratCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var campCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.77_0.60">Trapdoor To Dungeon</a>';
+            var campCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.77_0.60">Goblin Cave</a>';
             L.marker([0.69,  1.11], {icon: purpleIcon}).bindPopup(campCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var centCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.04_-0.29">Cave To Dungeon</a>';
+            var centCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#2.04_-0.29">Reka Dungeon</a>';
             L.marker([-0.26, 0.09], {icon: purpleIcon}).bindPopup(centCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var shortcutCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#1.85_-0.04">Shortcut to Dungeon</a>';
+            var druidCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#0.21_-0.31">Druid Cave</a>';
+            L.marker([-2.70, 0.03], {icon: purpleIcon}).bindPopup(druidCavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var shortcutCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#1.85_-0.04">Reka Dungeon Shortcut</a>';
             L.marker([-0.55, 0.37], {icon: purpleIcon}).bindPopup(shortcutCavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var kostenTunnelACavePopup = '<a href="https://genfamap.snwhd.com/dungeon#1.84_2.81">Kosten Tunnel</a>';
+            L.marker([-0.55, 3.77], {icon: purpleIcon}).bindPopup(kostenTunnelACavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var kostenTunnelBCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#1.67_2.82">Kosten Tunnel</a>';
+            L.marker([-0.77, 3.79], {icon: purpleIcon}).bindPopup(kostenTunnelBCavePopup).on('click', markerClicked).addTo(locationGroup);
 
             var monstermashCavePopup = 'Quest: Monster Mash';
             L.marker([-0.48, 2.29], {icon: yellowIcon}).bindPopup(monstermashCavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var prepTableOnePopup = 'Prep Table';
+            L.marker([0.52, 0.79], {icon: yellowIcon}).bindPopup(prepTableOnePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var prepTableTwoPopup = 'Prep Table';
+            L.marker([0.21, 0.34], {icon: yellowIcon}).bindPopup(prepTableTwoPopup).on('click', markerClicked).addTo(locationGroup);
+
+            var prepTableThreePopup = 'Prep Table';
+            L.marker([-0.74, 1.64], {icon: yellowIcon}).bindPopup(prepTableThreePopup).on('click', markerClicked).addTo(locationGroup);
             break;
         case 'fae':
             var faePopup = '<a href="https://genfamap.snwhd.com/#0.7_-0.9">Crystal To World</a>';
             L.marker([0.86, -0.93], {icon: purpleIcon}).bindPopup(faePopup).on('click', markerClicked).addTo(locationGroup);
             break;
         case 'dungeon':
-            var neCavePopup = '<a href="https://genfamap.snwhd.com/#0.6_1.56">Stairs To World</a>';
+            var neCavePopup = '<a href="https://genfamap.snwhd.com/#0.6_1.56">Stairs Out</a>';
             L.marker([2.69,  0.96], {icon: purpleIcon}).bindPopup(neCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var crabCavePopup = '<a href="https://genfamap.snwhd.com/#0.04_1.40">Ladder To World</a>';
+            var crabCavePopup = '<a href="https://genfamap.snwhd.com/#0.04_1.40">Ladder Out</a>';
             L.marker([2.28,  0.83], {icon: purpleIcon}).bindPopup(crabCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var ratCavePopup = '<a href="https://genfamap.snwhd.com/#0.9_0.47">Ladder To World</a>';
+            var ratCavePopup = '<a href="https://genfamap.snwhd.com/#0.9_0.47">Ladder Out</a>';
             L.marker([2.91, 0.08], {icon: purpleIcon}).bindPopup(ratCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var campCavePopup = '<a href="https://genfamap.snwhd.com/#0.69_1.11">Ladder to World</a>';
+            var campCavePopup = '<a href="https://genfamap.snwhd.com/#0.69_1.11">Ladder Out</a>';
             L.marker([2.77,  0.60], {icon: purpleIcon}).bindPopup(campCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var centCavePopup = '<a href="https://genfamap.snwhd.com/#-0.26_0.09">Cave to World</a>';
+            var centCavePopup = '<a href="https://genfamap.snwhd.com/#-0.26_0.09">Stairs Out</a>';
             L.marker([2.04, -0.29], {icon: purpleIcon}).bindPopup(centCavePopup).on('click', markerClicked).addTo(locationGroup);
 
             var deeperCavePopup = 'Cave To Deeper Dungeon (no map yet)';
@@ -473,11 +528,20 @@ window.onload = (event) => {
             var shortcutCavePopup = '<a href="https://genfamap.snwhd.com/#-0.55_0.37">Shortcut to World</a>';
             L.marker([1.85, -0.04], {icon: purpleIcon}).bindPopup(shortcutCavePopup).on('click', markerClicked).addTo(locationGroup);
 
+            var druidCavePopup = '<a href="https://genfamap.snwhd.com/#-2.70_-0.03">Stairs Out</a>';
+            L.marker([ 0.21, -0.31], {icon: purpleIcon}).bindPopup(druidCavePopup).on('click', markerClicked).addTo(locationGroup);
+
             var keyPopup = 'Shortcut Key';
             L.marker([1.95,  0.14], {icon: yellowIcon}).bindPopup(keyPopup).on('click', markerClicked).addTo(locationGroup);
 
             var orePopup = 'Jasper Ore';
             L.marker([2.15, -0.22], {icon: yellowIcon}).bindPopup(orePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var kostenTunnelACavePopup = '<a href="https://genfamap.snwhd.com/#-0.55_3.77">Kosten Tunnel</a>';
+            L.marker([ 1.84, 2.81], {icon: purpleIcon}).bindPopup(kostenTunnelACavePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var kostenTunnelBCavePopup = '<a href="https://genfamap.snwhd.com/#-0.77_3.79">Kosten Tunnel</a>';
+            L.marker([ 1.67, 2.82], {icon: purpleIcon}).bindPopup(kostenTunnelBCavePopup).on('click', markerClicked).addTo(locationGroup);
 
             // For the dungeon map only, make the bg black
             for (var c of document.querySelectorAll('.leaflet-container')) {
