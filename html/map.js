@@ -175,7 +175,14 @@ window.onload = (event) => {
             [ "Druid Poet", 49, [ 0.41,  0.78] ],
             [ "Spirit Siphoning Jellyfish", 60, [ 0.53,  0.90] ],
             [ "Sticky Jellyfish", 40, [ 0.66,  0.72] ],
-            [ "Enriched Treefolk", 48, [ 0.51,  0.72] ]
+            [ "Enriched Treefolk", 48, [ 0.51,  0.72] ],
+            [ "Degraded Treefolk", 55, [ 0.85,  0.46] ],
+            [ "Enriched Treefolk", 48, [ 0.85,  0.52] ],
+            [ "Treefolk Lord", 67, [ 0.94,  0.44] ],
+            [ "Wendigo", 38, [ 0.89,  0.14] ],
+            [ "Knight", 53, [ 0.93, -0.07] ],
+            [ "Treefolk", 35, [ 0.85, -0.07] ],
+            [ "Unicorn", 24, [ 0.93, -0.33] ]
 	    ],
 
 	    "dungeon": [
@@ -604,15 +611,6 @@ window.onload = (event) => {
     baseMaps = {
         "world": imageOverlay,
     };
-
-        // for (groupname in groups) {
-        //     var lgroup = groups[groupname];
-        //     lgroup.eachLayer(function (layer) {
-        //         if (map.hasLayer(layer)) {
-        //             map.removeLayer(layer);
-        //         }
-        //     });
-        // }
 
     var toggle_allGroup = new L.LayerGroup()
         .on('remove', function() {
