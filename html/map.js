@@ -1,3 +1,36 @@
+// phony group that toggles all
+function toggleLayersOff() {
+    let layersDivs = document.getElementsByClassName('leaflet-control-layers-overlays');
+    if (!layersDivs || layersDivs.length != 1) {
+        return;
+    }
+
+    let layersDiv = layersDivs[0];
+    for (let e of layersDiv.children) {
+        if (e.innerText.trim() == "toggle all") continue;
+        let check = e.getElementsByTagName('input')[0];
+        if (check.checked) {
+            check.click();
+        }
+    }
+}
+
+function toggleLayersOn() {
+    let layersDivs = document.getElementsByClassName('leaflet-control-layers-overlays');
+    if (!layersDivs || layersDivs.length != 1) {
+        return;
+    }
+
+    let layersDiv = layersDivs[0];
+    for (let e of layersDiv.children) {
+        if (e.innerText.trim() == "toggle all") continue;
+        let check = e.getElementsByTagName('input')[0];
+        if (!check.checked) {
+            check.click();
+        }
+    }
+}
+
 window.onload = (event) => {
 
     var monsters =  {
@@ -572,6 +605,24 @@ window.onload = (event) => {
         "world": imageOverlay,
     };
 
+        // for (groupname in groups) {
+        //     var lgroup = groups[groupname];
+        //     lgroup.eachLayer(function (layer) {
+        //         if (map.hasLayer(layer)) {
+        //             map.removeLayer(layer);
+        //         }
+        //     });
+        // }
+
+    var toggle_allGroup = new L.LayerGroup()
+        .on('remove', function() {
+            setTimeout(toggleLayersOff, 200);
+        })
+        .on('add', function() {
+            setTimeout(toggleLayersOn, 200);
+        })
+        .addTo(map);
+
     //
     // the rest is auto-generated
     //
@@ -579,19 +630,20 @@ window.onload = (event) => {
     switch (mapName) {
     
         case "world":
-            var questGroup = new L.LayerGroup().addTo(map)
-            var shopGroup = new L.LayerGroup().addTo(map)
-            var bankGroup = new L.LayerGroup().addTo(map)
-            var cookingGroup = new L.LayerGroup().addTo(map)
-            var forgingGroup = new L.LayerGroup().addTo(map)
-            var botanyGroup = new L.LayerGroup().addTo(map)
-            var miningGroup = new L.LayerGroup().addTo(map)
-            var tailoringGroup = new L.LayerGroup().addTo(map)
-            var treeGroup = new L.LayerGroup().addTo(map)
-            var butcheryGroup = new L.LayerGroup().addTo(map)
-            var craftingGroup = new L.LayerGroup().addTo(map)
+            var questGroup = new L.LayerGroup().addTo(map);
+            var shopGroup = new L.LayerGroup().addTo(map);
+            var bankGroup = new L.LayerGroup().addTo(map);
+            var cookingGroup = new L.LayerGroup().addTo(map);
+            var forgingGroup = new L.LayerGroup().addTo(map);
+            var botanyGroup = new L.LayerGroup().addTo(map);
+            var miningGroup = new L.LayerGroup().addTo(map);
+            var tailoringGroup = new L.LayerGroup().addTo(map);
+            var treeGroup = new L.LayerGroup().addTo(map);
+            var butcheryGroup = new L.LayerGroup().addTo(map);
+            var craftingGroup = new L.LayerGroup().addTo(map);
 
             var groups = {
+                "toggle all": toggle_allGroup,
                 "quest": questGroup,
                 "shop": shopGroup,
                 "bank": bankGroup,
@@ -786,11 +838,12 @@ window.onload = (event) => {
             L.marker([-0.773, -0.672], {icon: storeIcon}).on('click', markerClicked).addTo(shopGroup);
             break;
         case "fae":
-            var questGroup = new L.LayerGroup().addTo(map)
-            var shopGroup = new L.LayerGroup().addTo(map)
-            var bankGroup = new L.LayerGroup().addTo(map)
+            var questGroup = new L.LayerGroup().addTo(map);
+            var shopGroup = new L.LayerGroup().addTo(map);
+            var bankGroup = new L.LayerGroup().addTo(map);
 
             var groups = {
+                "toggle all": toggle_allGroup,
                 "quest": questGroup,
                 "shop": shopGroup,
                 "bank": bankGroup,
@@ -802,11 +855,12 @@ window.onload = (event) => {
 
             break;
         case "dungeon":
-            var questGroup = new L.LayerGroup().addTo(map)
-            var shopGroup = new L.LayerGroup().addTo(map)
-            var bankGroup = new L.LayerGroup().addTo(map)
+            var questGroup = new L.LayerGroup().addTo(map);
+            var shopGroup = new L.LayerGroup().addTo(map);
+            var bankGroup = new L.LayerGroup().addTo(map);
 
             var groups = {
+                "toggle all": toggle_allGroup,
                 "quest": questGroup,
                 "shop": shopGroup,
                 "bank": bankGroup,

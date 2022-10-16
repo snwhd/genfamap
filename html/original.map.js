@@ -1,3 +1,36 @@
+// phony group that toggles all
+function toggleLayersOff() {
+    let layersDivs = document.getElementsByClassName('leaflet-control-layers-overlays');
+    if (!layersDivs || layersDivs.length != 1) {
+        return;
+    }
+
+    let layersDiv = layersDivs[0];
+    for (let e of layersDiv.children) {
+        if (e.innerText.trim() == "toggle all") continue;
+        let check = e.getElementsByTagName('input')[0];
+        if (check.checked) {
+            check.click();
+        }
+    }
+}
+
+function toggleLayersOn() {
+    let layersDivs = document.getElementsByClassName('leaflet-control-layers-overlays');
+    if (!layersDivs || layersDivs.length != 1) {
+        return;
+    }
+
+    let layersDiv = layersDivs[0];
+    for (let e of layersDiv.children) {
+        if (e.innerText.trim() == "toggle all") continue;
+        let check = e.getElementsByTagName('input')[0];
+        if (!check.checked) {
+            check.click();
+        }
+    }
+}
+
 window.onload = (event) => {
 
     var monsters =  {
@@ -571,6 +604,15 @@ window.onload = (event) => {
     baseMaps = {
         "world": imageOverlay,
     };
+
+    var toggle_allGroup = new L.LayerGroup()
+        .on('remove', function() {
+            setTimeout(toggleLayersOff, 200);
+        })
+        .on('add', function() {
+            setTimeout(toggleLayersOn, 200);
+        })
+        .addTo(map);
 
     //
     // the rest is auto-generated

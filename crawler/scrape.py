@@ -441,9 +441,10 @@ def cmd_icons(args):
     icons = {}
     markers = []
     groups = {
-        'quest': 'var questGroup = new L.LayerGroup().addTo(map)',
-        'shop':  'var shopGroup = new L.LayerGroup().addTo(map)',
-        'bank':  'var bankGroup = new L.LayerGroup().addTo(map)',
+        'toggle all': '', # defined in js
+        'quest': 'var questGroup = new L.LayerGroup().addTo(map);',
+        'shop':  'var shopGroup = new L.LayerGroup().addTo(map);',
+        'bank':  'var bankGroup = new L.LayerGroup().addTo(map);',
         'monster': '',  # defined in js
         'location': '', # defined in js
     }
@@ -499,7 +500,7 @@ def cmd_icons(args):
                 _, skill, popup = type_.split('-', 2)
                 popup = popup.split('-')[-1]
                 if skill not in groups:
-                    groups[skill] = f'var {skill}Group = new L.LayerGroup().addTo(map)'
+                    groups[skill] = f'var {skill}Group = new L.LayerGroup().addTo(map);'
                 group = f'{skill}Group'
             elif icon == 'bank':
                 group = 'bankGroup'
@@ -523,7 +524,7 @@ def cmd_icons(args):
     print(indent + 'var groups = {')
     for i, name in enumerate(groups.keys()):
         comma = ',' if i < len(groups) else ''
-        print(f'{indent}    "{name}": {name}Group{comma}')
+        print(f'{indent}    "{name}": {name.replace(" ", "_")}Group{comma}')
     print(indent + '};')
     print(indent + 'var layerControl = L.control.layers(baseMaps, groups).addTo(map);');
 
