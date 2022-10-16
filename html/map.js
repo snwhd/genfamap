@@ -182,7 +182,8 @@ window.onload = (event) => {
             [ "Wendigo", 38, [ 0.89,  0.14] ],
             [ "Knight", 53, [ 0.93, -0.07] ],
             [ "Treefolk", 35, [ 0.85, -0.07] ],
-            [ "Unicorn", 24, [ 0.93, -0.33] ]
+            [ "Unicorn", 24, [ 0.93, -0.33] ],
+            [ "Colossal Viscosity", 98, [0.78, 0.77] ]
 	    ],
 
 	    "dungeon": [
@@ -231,7 +232,8 @@ window.onload = (event) => {
     var bossNames = [
         "Ogre Wife",
         "Ogre Husband",
-        "Jack"
+        "Jack",
+        "Colossal Viscosity"
     ];
 
     var imageUrls = {
