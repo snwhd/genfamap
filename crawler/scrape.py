@@ -450,9 +450,9 @@ def cmd_icons(args):
     }
 
     for filename, data in map_files.items():
-        if region == 'dungeon':
-            # TODO: find out why dungeon is broken
-            break
+        # if region == 'dungeon':
+        #     # TODO: find out why dungeon is broken
+        #     break
         xs, ys, _ = filename.split('_')
         wx = int(xs)
         wy = -1 * int(ys)
@@ -511,6 +511,42 @@ def cmd_icons(args):
                 group = 'map'
 
             markers.append(f"L.marker([{dy:0.03f}, {dx:0.03f}], {{icon: {icon}Icon}}).on('click', markerClicked).addTo({group}){popup};")
+
+        # objects = data.get('objects' {}),
+        # for key, obj in objects.items():
+        #     x = int(obj['x'])
+        #     y = int(obj['y'])
+
+        #     icon = ''
+        #     group = ''
+        #     popup = '';
+
+        #     name = obj['object']
+        #     if name.startswith('skill-'):
+        #         _, skill, popup = type_.split('-', 2)
+        #         if 'quest-' in popup:
+        #             popup = popup.split('-')[-1]
+        #         if skill not in groups:
+        #             groups[skill] = f'var {skill}Group = new L.LayerGroup().addTo(map);'
+        #         group = f'{skill}Group'
+        #         if skill == 'mining':
+        #             icon = 'resource_mine'
+        #         elif skill == 'botany':
+        #             icon = 'resource_plant'
+        #         elif skill == 'butchery':
+        #             icon = 'process_butchery'
+        #         elif skill == 'cooking':
+        #             icon = 'process_cooking'
+        #         elif skill == 'forging':
+        #             if 'furnace' in popup or 'forge' in popup:
+        #                 icon = 'process_forge'
+        #             else:
+        #                 icon = 'process_anvil'
+
+        #     if icon not in icons:
+        #         icons[icon] = f'var {icon}Icon = new GenIcon({{iconUrl: "{baseurl}/{icon}.png"}});'
+
+        #     markers.append(f"L.marker([{dy:0.03f}, {dx:0.03f}], {{icon: {icon}Icon}}).on('click', markerClicked).addTo({group}){popup};")
 
     r = 'fae' if region == 'fairy' else region
     print(f'        case "{r}":')

@@ -547,6 +547,9 @@ window.onload = (event) => {
         case 'fae':
             var faePopup = '<a href="https://genfamap.snwhd.com/#0.7_-0.9">Crystal To World</a>';
             L.marker([0.86, -0.93], {icon: purpleIcon}).bindPopup(faePopup).on('click', markerClicked).addTo(locationGroup);
+
+            var bankPopup = 'Bank';
+            L.marker([0.74, -0.89], {icon: yellowIcon}).bindPopup(bankPopup).on('click', markerClicked).addTo(locationGroup);
             break;
         case 'dungeon':
             var neCavePopup = '<a href="https://genfamap.snwhd.com/#0.6_1.56">Stairs Out</a>';
