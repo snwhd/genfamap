@@ -100,10 +100,10 @@ window.onload = (event) => {
             [ "Snow Cat",     30, [-1.50, -0.95] ],
 
             // south of Plenty
-            [ "Bear",        38, [-1.30, 0.70] ],
+            [ "Spaniel Dog", 13, [-1.30, 0.70] ],
             [ "Grim Thug",   18, [-1.35, 0.95] ],
             [ "Bandit",      22, [-1.50, 0.95] ],
-            [ "Spaniel Dog", 13, [-0.85, 0.90] ],
+            [ "Bear",        38, [-0.85, 0.90] ],
 
             // southern forest
             [ "Swamp Spider", 27, [-1.55, 0.10] ],
@@ -145,12 +145,17 @@ window.onload = (event) => {
             [ "Ranger",         43, [0.155, 2.35] ],
             [ "Rogue",          43, [0.43, 2.17] ],
             [ "Ranger",         43, [0.81, 2.63] ],
-            [ "Brute Leech",    44, [0.93, 2.74] ],
-            [ "Brute Leech",    44, [0.76, 2.81] ],
-            [ "Brute Leech",    44, [0.77, 2.95] ],
+
+            // removed from game
+            // [ "Brute Leech",    44, [0.93, 2.74] ],
+            // [ "Brute Leech",    44, [0.76, 2.81] ],
+            // [ "Brute Leech",    44, [0.77, 2.95] ],
+
+            [ "Shroomy",       50, [0.89, 3.21] ],
+            [ "Ghost Crab",    32, [0.77, 2.95] ],
 
             // SE Emerald City
-            [ "shroomy",         50, [-2.23, 0.76] ],
+            [ "Shroomy",         50, [-2.23, 0.76] ],
             [ "Bandit Chieftan", 53, [-2.49, 0.92] ],
             [ "Blue Minotaur",   49, [-2.78, 0.87] ],
 
@@ -532,8 +537,9 @@ window.onload = (event) => {
             var kostenTunnelBCavePopup = '<a href="https://genfamap.snwhd.com/dungeon#1.67_2.82">Kosten Tunnel</a>';
             L.marker([-0.77, 3.79], {icon: purpleIcon}).bindPopup(kostenTunnelBCavePopup).on('click', markerClicked).addTo(locationGroup);
 
-            var monstermashCavePopup = 'Quest: Monster Mash';
-            L.marker([-0.48, 2.29], {icon: yellowIcon}).bindPopup(monstermashCavePopup).on('click', markerClicked).addTo(locationGroup);
+            // Marker was added to game
+            // var monstermashCavePopup = 'Quest: Monster Mash';
+            // L.marker([-0.48, 2.29], {icon: yellowIcon}).bindPopup(monstermashCavePopup).on('click', markerClicked).addTo(locationGroup);
 
             var prepTableOnePopup = 'Prep Table';
             L.marker([0.52, 0.79], {icon: yellowIcon}).bindPopup(prepTableOnePopup).on('click', markerClicked).addTo(locationGroup);
@@ -711,6 +717,7 @@ window.onload = (event) => {
             L.marker([-1.172, -1.383], {icon: storeIcon}).on('click', markerClicked).addTo(shopGroup).bindPopup("Hel");
             L.marker([-1.312, -1.414], {icon: storeIcon}).on('click', markerClicked).addTo(shopGroup).bindPopup("sveta");
             L.marker([-1.305, -1.625], {icon: storeIcon}).on('click', markerClicked).addTo(shopGroup).bindPopup("lyting");
+            L.marker([-0.484, 2.297], {icon: questIcon}).on('click', markerClicked).addTo(questGroup).bindPopup("mash");
             L.marker([-0.336, 2.820], {icon: resource_mineIcon}).on('click', markerClicked).addTo(miningGroup).bindPopup("silver");
             L.marker([-0.805, 2.133], {icon: storeIcon}).on('click', markerClicked).addTo(shopGroup).bindPopup("fletcher");
             L.marker([-0.500, 2.281], {icon: storeIcon}).on('click', markerClicked).addTo(shopGroup).bindPopup("anton");
@@ -734,6 +741,7 @@ window.onload = (event) => {
             L.marker([-1.828, -0.289], {icon: storeIcon}).on('click', markerClicked).addTo(shopGroup).bindPopup("shopkeeper");
             L.marker([-1.922, -0.344], {icon: storeIcon}).on('click', markerClicked).addTo(shopGroup).bindPopup("baronecio");
             L.marker([-1.852, -0.352], {icon: storeIcon}).on('click', markerClicked).addTo(shopGroup).bindPopup("winona");
+            L.marker([-0.539, 3.531], {icon: questIcon}).on('click', markerClicked).addTo(questGroup).bindPopup("heart_of_gold");
             L.marker([-0.703, 0.688], {icon: process_cookingIcon}).on('click', markerClicked).addTo(cookingGroup).bindPopup("range");
             L.marker([-0.258, 0.156], {icon: resource_plantIcon}).on('click', markerClicked).addTo(botanyGroup).bindPopup("tomato");
             L.marker([-0.336, 0.266], {icon: resource_plantIcon}).on('click', markerClicked).addTo(botanyGroup).bindPopup("tomato");
