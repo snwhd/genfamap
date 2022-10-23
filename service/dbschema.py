@@ -30,9 +30,6 @@ class Map(dict):
 
 definitions = {
     'tables': [
-        '''CREATE TABLE IF NOT EXISTS database_version (
-            version STRING NOT NULL
-        )''',
         '''CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY,
             username STRING UNIQUE NOT NULL,
@@ -107,6 +104,11 @@ definitions = {
             time STRING NOT NULL,
             actor STRING NOT NULL,
             action STRING NOT NULL
+        )''',
+        '''CREATE TABLE IF NOT EXISTS revocations (
+            id INTEGER PRIMARY KEY,
+            username STRING NOT NULL,
+            before STRING NOT NULL
         )''',
     ],
 }

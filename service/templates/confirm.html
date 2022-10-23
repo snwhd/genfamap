@@ -1,13 +1,35 @@
 {% extends "base.html" %}
 {% block head %}
 	<title>Genfamap</title>
+	<style>
+html {
+	height: 100%;
+	font-family: sans-serif;
+}
+body {
+	text-align: center;
+	height: 100%;
+}
+form {
+	position: relative;
+	top: 30%;
+}
+form #token {
+	font-size: 2em;
+	border-radius: 0.25em;
+	border-color: #dddddd;
+	text-align: center;
+}
+	</style>
 {% endblock %}
 {% block content %}
 	{% if error %}
 	<h1 style="color:red">{{error}}</h1>
 	{% endif %}
 	<form method="POST" action="/confirm">
-		<input type="text" name="token" placeholder="token">
+		<input id="token" type="text" name="token" placeholder="token">
+		<br>
+		<br>
 		<input type="submit" value="submit">
 	</form>
 {% endblock %}

@@ -1,4 +1,4 @@
-from database import Database
+from database import Database, DATE_FORMAT
 
 BOSS_NAMES = [
     "Ogre Wife",
@@ -277,3 +277,13 @@ def do_icons():
             for icon in icons[world]:
                 x, y, icon_name, icon_group, name = icon
                 db.insert_icon(world, x, y, icon_name, icon_group, name, False)
+
+
+def backup():
+
+    from datetime import datetime
+    import subprocess
+
+    cmd = ['cp', 'map.db', f'backups/{datetime.now()}.db']
+    subprocess.check_output(cmd)
+

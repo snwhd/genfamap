@@ -332,3 +332,17 @@ class Database(object):
 
     def sponsor(self, sponsor, client):
         self.insert('INSERT INTO sponsors VALUES(NULL, ?, ?)', (sponsor, client))
+
+    def revoke(self, username):
+        date = datetime.now().strftime(DATE_FORMAT)
+        params = (username, date)
+        self.insert('INSERT INTO revocations VALUES (NULL, ?, ?)', params)
+
+    def revoked(self, username, time):
+        params = (username,)
+        rows = self.select('SELECT before FROM revocations WHERE username = ? ORDER BY before DESC LIMIT 1', params)
+        if len(rows) > 0:
+            before = datetime.strptime(rows[0][0], DATE_FORMAT)
+            current = datetime.strptime(time, DATE_FORMAT) if time else datetime.now()
+            return (current <= before, before)
+        return (False, None)

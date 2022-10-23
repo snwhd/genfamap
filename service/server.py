@@ -132,10 +132,19 @@ class WebServer(object):
     def run(self, environ, start_response):
         """handle wsgi requests"""
         request = Request(environ)
+
+        # check if session is revoked
+        u = request.session.get('u')
+        t = request.session.get('t')
+        with Database() as db:
+            revoked, before = db.revoked(u, t)
+            if revoked:
+                if 'u' in request.session: del request.session['u']
+                if 't' in request.session: del request.session['t']
+                if 'p' in request.session: del request.session['p']
+
         response = self.handle(request) or NotFound()
-        if not isinstance(response, HTTPException): # and request.session.should_save:
-            if request.session.get('t') is None:
-                request.session['t'] = datetime.now().strftime(DATE_FORMAT)
+        if not isinstance(response, HTTPException):
             response.set_cookie(
                 SESSION_COOKIE,
                 request.session.serialize(),
@@ -244,7 +253,13 @@ class WebServer(object):
         with Database() as db:
             bans = db.get_bans()
             users = [
-                [username, permission, (username in bans), (token is None) ]
+                [
+                    username,
+                    permission,
+                    (username in bans),
+                    (token is None),
+                    db.revoked(username, None)[1],
+                 ]
                 for _, username, permission, token in db.get_users()
             ]
 
@@ -424,6 +439,21 @@ class WebServer(object):
                     with Database() as db:
                         db.log(username, log)
                         db.ban_username(banned)
+
+                elif action == 'revoke':
+                    check_admin()
+
+                    revoked = request.form.get('username')
+                    if revoked is None:
+                        raise ValueError('username not provided')
+                    if revoked == 'dan':
+                        raise ValueError('dont revoke dan')
+
+                    log = f'{action} : {revoked}'
+                    with Database() as db:
+                        db.log(username, log)
+                        db.revoke(revoked)
+
 
         except Exception as e:
             response['status'] = 'error'

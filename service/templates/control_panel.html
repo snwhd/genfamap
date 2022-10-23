@@ -1,7 +1,20 @@
 {% extends "base.html" %}
 {% block head %}
-	<title>Genfamap</title>
-	<style>
+    <title>Genfamap</title>
+    <style>
+body {
+	text-align: center;
+	font-family: sans-serif;
+}
+.contentblock {
+	width: fit-content;
+	max-height: 20em;
+	overflow-y: scroll;
+	margin: auto;
+	border-style: solid;
+	border-color: #dddddd;
+	border-width: thin;
+}
 table {
     border-collapse: collapse;
     margin: 25px 0;
@@ -10,15 +23,16 @@ table {
     min-width: 400px;
 }
 table thead tr {
-    text-align: left;
-	border-bottom: thin solid #dddddd;
-	border-top: thin solid #dddddd;
+    text-align: center;
+    border-bottom: thin solid #dddddd;
+    border-top: thin solid #dddddd;
 }
 table th,
 table td {
     padding: 12px 15px;
 }
 table tbody tr {
+	text-align: left;
     border-bottom: thin solid #dddddd;
 }
 
@@ -27,88 +41,139 @@ table tbody tr:nth-of-type(even) {
 }
 
 table tbody tr:last-of-type {
-    border-bottom: 2px solid #000;
+    border-bottom: 1px solid #dddddd;
 }
-	</style>
+    </style>
 {% endblock %}
 {% block content %}
-	{% if error %}
-	<h1 style="color:red">{{error}}</h1>
-	{% endif %}
-	<div><p id="api_response"></p></div>
-	<form style="display:none" id="form_ban">
-		<label>username</label>
-		<input id="ban_name_input" type="text" name="username">
-		<input type="submit" value="submit">
-	</form>
-	<h1>Users</h1>
-	{% if users %}{% for u in users %}
-	<div>
-		<a>{{u[0]}} ({{u[1]}}) {% if u[2] %} (banned) {% endif %} {% if not u[3] %} (not activated) {% endif %}</a>
-		{% if not u[2] %}<button onclick="doBan('{{u[0]}}')">Ban {{u[0]}}</button>{% endif %}
-	</div>
-	{% endfor %}{% endif %}
-	<h1>Logs</h1>
-	{% if logs %}
-	<div style="width:90%;height:15em;overflow:scroll">
-	<table>
-	<thead>
-		<tr>
-			<th>Time</th>
-			<th>User</th>
-			<th>Action</th>
-		</tr>
-	</thead>
-	<tbody>
-	{% for log in logs %}
-		<tr>
-			<td>{{log[0]}}</td>
-			<td>{{log[1]}}</td>
-			<td>{{log[2]}}</td>
-		</tr>
-	{% endfor %}
-	</tbody>
-	</table>
-	</div>
-	<button onclick="extendLogs({{logs|count}} * 2)">More Logs</button>
-	{% endif %}
-	<script>
+    {% if error %}
+    <h1 style="color:red">{{error}}</h1>
+    {% endif %}
+    <div><p id="api_response"></p></div>
+    <form style="display:none" id="form_ban">
+        <label>username</label>
+        <input id="ban_name_input" type="text" name="username">
+        <input type="submit" value="submit">
+    </form>
+    <form style="display:none" id="form_revoke">
+        <label>username</label>
+        <input id="revoke_name_input" type="text" name="username">
+        <input type="submit" value="submit">
+    </form>
+    <h1>Users</h1>
+    <div class="contentblock">
+		<table>
+		<thead>
+			<tr>
+				<th>Username</th>
+				<th>Role</th>
+				<th>Activated</th>
+				<th>Banned</th>
+				<th>Session Revoked</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for u in users %}
+			<tr>
+				<td>{{u[0]}}</td>
+				<td>{{u[1]}}</td>
+				<td>{% if not u[3] %}not {% endif %} activated</td>
+				<td>{% if u[2] %} banned {% else %} no {% endif %}</td>
+				<td> {% if u[4] %} {{u[4]}} {% else %} no {% endif %}</td>
+				<td>
+					{% if not u[2] %}
+						<button onclick="doBan('{{u[0]}}')">Ban {{u[0]}}</button>
+					{% endif %}
+					<button onclick="doRevoke('{{u[0]}}')">Revoke {{u[0]}}</button>
+				</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+		</table>
+    </div>
+    <h1>Logs</h1>
+    {% if logs %}
+    <div class="contentblock">
+    <table>
+    <thead>
+        <tr>
+            <th>Time</th>
+            <th>User</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for log in logs %}
+        <tr>
+            <td>{{log[0]}}</td>
+            <td>{{log[1]}}</td>
+            <td>{{log[2]}}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    </div>
+    <button onclick="extendLogs({{logs|count}} * 2)">More Logs</button>
+    {% endif %}
+    <script>
 function extendLogs(n) {
-	window.location = '//' + location.host + location.pathname + "?logs=" + n;
+    window.location = '//' + location.host + location.pathname + "?logs=" + n;
 }
 
 function displayResult(result) {
-	let p = document.getElementById("api_response");
-	if (result.exceptionid) {
-		p.innerText = "result: " + result.status + " - " + result.exceptionid;
-	} else {
-		p.innerText = "result: " + result.status;
-	}
+    let p = document.getElementById("api_response");
+    if (result.exceptionid) {
+        p.innerText = "result: " + result.status + " - " + result.exceptionid;
+    } else {
+        p.innerText = "result: " + result.status;
+    }
 }
 
 let ban_username = document.getElementById("form_ban");
 ban_username.addEventListener("submit", function(e) {
-	submitBanForm();
+    submitBanForm();
 });
 
 function submitBanForm() {
-	let data = new FormData(ban_username);
-	let xhr = new XMLHttpRequest();
-	xhr.responseType = 'json';
-	xhr.onload = function() {
-		displayResult(xhr.response);
-	}
-	xhr.open("POST", "/api/ban", true);
-	xhr.send(data);
-	e.preventDefault();
-	return false;
+    let data = new FormData(ban_username);
+    let xhr = new XMLHttpRequest();
+    xhr.responseType = 'json';
+    xhr.onload = function() {
+        displayResult(xhr.response);
+    }
+    xhr.open("POST", "/api/ban", true);
+    xhr.send(data);
+    e.preventDefault();
+    return false;
 }
 
 function doBan(user) {
-	let input = document.getElementById("ban_name_input");
+    let input = document.getElementById("ban_name_input");
+    input.value = user;
+    submitBanForm();
+    input.value = "";
+}
+
+function submitRevokeForm() {
+	let revoke_form = document.getElementById('form_revoke');
+    let data = new FormData(revoke_form);
+    let xhr = new XMLHttpRequest();
+    xhr.responseType = 'json';
+    xhr.onload = function() {
+        displayResult(xhr.response);
+    }
+    xhr.open("POST", "/api/revoke", true);
+    xhr.send(data);
+    e.preventDefault();
+    return false;
+}
+
+function doRevoke(user) {
+	let input = document.getElementById("revoke_name_input");
 	input.value = user;
-	submitBanForm();
+	submitRevokeForm();
 	input.value = "";
 }
-	</script>
+    </script>
 {% endblock %}
