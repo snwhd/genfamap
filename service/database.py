@@ -265,7 +265,7 @@ class Database(object):
 
     def insert_icon(
         self,
-        mapname: int,
+        mapname: str,
         x: float,
         y: float,
         icon: str,
@@ -279,6 +279,20 @@ class Database(object):
         map_id = rows[0][0]
         params = (map_id, x, y, icon, mapgroup, name, int(manual))
         self.insert('INSERT INTO icons VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)', params)
+
+    def delete_icon(
+        self,
+        map_name: str,
+        x: float,
+        y: float,
+    ) -> None:
+        rows = self.get_map(map_name)
+        if len(rows) != 1:
+            raise ValueError('invalid map')
+        map_id = rows[0][0]
+        params = (x, y, map_id)
+        self.execute('DELETE FROM icons WHERE x=? AND y=? AND map=?', params)
+        
 
     def ban_username(
         self,

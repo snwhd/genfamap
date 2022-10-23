@@ -21,18 +21,19 @@
 	<div id="credits" class="modal-window">
 	  <div>
 	    <a href="#" title="Close" class="modal-close">Close</a>
-	    <h1>Credits</h1>
+	    <h1>Contributors</h1>
 	    <div>Created by Dan</div>
 	    <br>
-	    <div><small>With help from</small></div>
-		<div>Goku - monster info</div>
-	    <div>Clipper - fae monster info</div>
-		<div>Manacaym - cooking locations</div>
+	    <div><small>with help from</small></div>
+		<div>Goku</div>
+	    <div>Clipper</div>
+		<div>Manacaym</div>
+		<h4>
 	  </div>
 	</div>
 	</div>
 	<div class="footer">
-		<a href="#credits">Credits</a>
+		<a href="#credits">Contributors</a>
 		|
 		Sponsored by <a href="https://www.twitch.tv/retrommo">RetroMMO</a>
 	</div>
@@ -162,13 +163,65 @@
 			<button id="delete_location_button">Delete Location</button>
 		</div>
 
-		<div class="editorform" id="edit_location">
-			<h4>edit location</h4>
-			<button id="delete_location_button">Delete Location</button>
+		<div class="editorform" id="add_icon">
+			<h4>: add icon</h4>
+			<form id="add_icon_form">
+				<label>name</label>
+				<input type="text" name="name">
+				<br>
+
+				<label>icon</label>
+				<select name="icon" id="add_icon_icon">
+					<option value="bank">bank</option>
+            		<option value="process_anvil">forging</option>
+            		<option value="process_butchery">butchery</option>
+            		<option value="process_cooking">cooking</option>
+            		<option value="process_forge">forging</option>
+            		<option value="process_pottery">crafting</option>
+            		<option value="process_tailoring">tailoring</option>
+            		<option value="process_water">cooking</option>
+            		<option value="quest">quest</option>
+            		<option value="resource_mine">mining</option>
+            		<option value="resource_plant">botany</option>
+            		<option value="resource_tree">tree</option>
+            		<option value="store">shop</option>
+				</select>
+				<br>
+
+				<label>map</label>
+				<select name="map" id="add_icon_map">
+					<option value="world">world</option>
+					<option value="fae">fae</option>
+					<option value="dungeon">dungeon</option>
+				</select>
+				<br>
+
+				<label>position</label>
+				<input type="text" name="x" id="add_icon_x">
+				<input type="text" name="y" id="add_icon_y">
+				<br>
+
+				<input type="submit" value="submit" id="add_icon_submit">
+			</form>
 		</div>
 
-		<div class="editorform" id="add_icon">
-			<h4>todo: add icon</h4>
+		<div class="editorform" id="edit_icon">
+			<h4>edit icon</h4>
+			<form style="display:none" id="delete_icon_form">
+				<label>map</label>
+				<select name="map" id="delete_icon_map">
+					<option value="world">world</option>
+					<option value="fae">fae</option>
+					<option value="dungeon">dungeon</option>
+				</select>
+				<br>
+
+				<label>position</label>
+				<input type="text" name="x" id="delete_icon_x">
+				<input type="text" name="y" id="delete_icon_y">
+				<br>
+			</form>
+			<button id="delete_icon_button">Delete Icon</button>
 		</div>
 
 	</div>

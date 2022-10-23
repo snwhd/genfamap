@@ -322,6 +322,45 @@ class WebServer(object):
                         db.delete_location(*params)
                         db.meta_set_modified(True)
 
+                elif action == 'add_icon':
+                    check_editor()
+
+                    map_name = request.form.get('map')
+                    x = request.form.get('x')
+                    y = request.form.get('y')
+                    icon = request.form.get('icon')
+                    name = request.form.get('name')
+                    if None in (map_name, x, y, icon, name):
+                        raise ValueError(f'missing parameter')
+                    x = float(x)
+                    y = float(y)
+                    mapgroup = self.icon_to_mapgroup(icon)
+                    params = (map_name, x, y, icon, mapgroup, name)
+                    with Database() as db:
+                        log = f'{action} : {params}'
+                        db.log(username, log)
+                        db.insert_icon(*params)
+                        db.meta_set_modified(True)
+
+                    response['group'] = mapgroup
+
+                elif action == 'delete_icon':
+                    check_editor()
+
+                    map_name = request.form.get('map')
+                    x = request.form.get('x')
+                    y = request.form.get('y')
+                    if None in (map_name, x, y):
+                        raise ValueError(f'missing parameter')
+                    x = float(x)
+                    y = float(y)
+                    params = (map_name, x, y)
+                    with Database() as db:
+                        log = f'{action} : {params}'
+                        db.log(username, log)
+                        db.delete_icon(*params)
+                        db.meta_set_modified(True)
+
                 elif action == 'ban':
                     check_admin()
 
@@ -338,6 +377,23 @@ class WebServer(object):
             response['exceptionid'] = log_exception(e)
 
         return self.json_response(response)
+
+    def icon_to_mapgroup(self, icon):
+        return {
+            'bank':              'bank',
+            'process_anvil':     'forging',
+            'process_butchery':  'butchery',
+            'process_cooking':   'cooking',
+            'process_forge':     'forging',
+            'process_pottery':   'crafting',
+            'process_tailoring': 'tailoring',
+            'process_water':     'cooking',
+            'quest':             'quest',
+            'resource_mine':     'mining',
+            'resource_plant':    'botany',
+            'resource_tree':     'tree',
+            'store':             'shop',
+        }[icon]
 
     def recreate_map_info(self, db: Database) -> None:
         icons = {}

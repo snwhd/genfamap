@@ -198,21 +198,28 @@ window.onload = (event) => {
         });
     }
 
-    function getMarkerAt(oX, oY) {
-        let marker = null;
+    function getMarkersAt(oX, oY) {
+        let markers = [];
         for (groupname in groups) {
             let lgroup = groups[groupname];
             lgroup.eachLayer(function (layer) {
-                if (marker == null && layer instanceof L.Marker) {
+                if (layer instanceof L.Marker) {
                     let llat = layer.getLatLng().lat;
                     let llng = layer.getLatLng().lng;
                     if (llat == oY && llng == oX) {
-                        marker = layer;
+                        markers.push(layer);
                     }
                 }
             });
         }
-        return marker;
+        return markers;
+    }
+
+    function deleteMarkersAt(oX, oY) {
+        let markers = getMarkersAt(oX, oY);
+        for (marker of markers) {
+            marker.remove();
+        }
     }
 
     //
@@ -301,7 +308,8 @@ window.onload = (event) => {
         "edit_monster",
         "add_location",
         "edit_location",
-        "add_icon"
+        "add_icon",
+        "edit_icon"
     ];
 
     function setupAdminTools() {
@@ -341,10 +349,7 @@ window.onload = (event) => {
                     console.log(response);
                     if (response.status == 'okay') {
                         let pos = [parseFloat(data.get('x')), parseFloat(data.get('y'))];
-                        let marker = getMarkerAt(pos[0], pos[1]);
-                        if (marker) {
-                            marker.remove();
-                        }
+                        deleteMarkersAt(pos[0], pos[1]);
                     }
                 });
                 e.preventDefault();
@@ -386,20 +391,54 @@ window.onload = (event) => {
                 apiWrite("delete_location", data, function (response) {
                     console.log(response);
                     if (response.status == 'okay') {
-                        let marker = getMarkerAt(parseFloat(data.get('x')), parseFloat(data.get('y')));
-                        if (marker) {
-                            marker.remove();
-                        }
+                        deleteMarkersAt(parseFloat(data.get('x')), parseFloat(data.get('y')));
                     }
                 });
                 e.preventDefault();
                 return false;
             }
 
+            // add icons
             let add_icon_button = document.getElementById("pick_add_icon");
             add_icon_button.onclick = function(e) {
                 selectEditorPane("add_icon");
             };
+            let add_icon_submit = document.getElementById("add_icon_submit");
+            add_icon_submit.onclick = function(e) {
+                let data = new FormData(document.getElementById("add_icon_form"));
+                apiWrite("add_icon", data, function (response) {
+                    console.log(response);
+                    if (response.status == 'okay') {
+                        let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
+                        let group = iconGroups[response.group];
+                        console.log(iconGroups);
+                        console.log(response.group);
+                        console.log(group);
+                        new CustomMarker(pos, {
+                            icon: iconIcons[data.get('icon')],
+                            markerType: 'icon',
+                        }).on('click', markerClicked)
+                          .bindPopup(data.get('name'))
+                          .addTo(iconGroups[response.group]);
+                    }
+                });
+                e.preventDefault();
+                return false;
+            }
+
+            // delete icons
+            let delete_icon = document.getElementById("delete_icon_button");
+            delete_icon.onclick = function (e) {
+                let data = new FormData(document.getElementById("delete_icon_form"));
+                apiWrite("delete_icon", data, function (response) {
+                    console.log(response);
+                    if (response.status == 'okay') {
+                        deleteMarkersAt(parseFloat(data.get('x')), parseFloat(data.get('y')));
+                    }
+                });
+                e.preventDefault();
+                return false;
+            }
         }
     }
 
@@ -465,6 +504,22 @@ window.onload = (event) => {
                 e = document.getElementById("delete_location_y");
                 e.value = "" + clickedY;
                 e = document.getElementById("delete_location_map");
+                e.value = mapName;
+                break;
+            case "add_icon":
+                var e = document.getElementById("add_icon_x");
+                e.value = "" + clickedX;
+                e = document.getElementById("add_icon_y");
+                e.value = "" + clickedY;
+                e = document.getElementById("add_icon_map");
+                e.value = mapName;
+                break;
+            case "edit_icon":
+                var e = document.getElementById("delete_icon_x");
+                e.value = "" + clickedX;
+                e = document.getElementById("delete_icon_y");
+                e.value = "" + clickedY;
+                e = document.getElementById("delete_icon_map");
                 e.value = mapName;
                 break;
         }
