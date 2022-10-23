@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block head %}
+	<title>Genfamap</title>
+{% endblock %}
+{% block content %}
+	{% if token %}
+	<h1 style="font-size: 3em">{{token}}</h1>
+	{% else %}
+	<form method="POST" action="/gen">
+		<input type="text" name="username" placeholder="username">
+		<input type="text" name="permission" placeholder="permission">
+		<input type="submit" value="submit">
+	</form>
+	{% endif %}
+{% endblock %}

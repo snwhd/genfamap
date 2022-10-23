@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block head %}
+	<title>Genfamap</title>
+	<link
+		rel="stylesheet"
+		href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css"
+		integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+		crossorigin=""
+	/>
+	<script
+		src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js"
+		integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg="
+		crossorigin=""
+	></script>
+	<script src="https://unpkg.com/leaflet-ant-path" type="text/javascript"></script>
+	<link rel="stylesheet" href="/static/css/main.css">
+	<script src="/static/js/map.js"></script>
+{% endblock %}
+{% block content %}
+	<div id="map"></div>
+	<div id="credits" class="modal-window">
+	  <div>
+	    <a href="#" title="Close" class="modal-close">Close</a>
+	    <h1>Credits</h1>
+	    <div>Created by Dan</div>
+	    <br>
+	    <div><small>With help from</small></div>
+		<div>Goku - monster info</div>
+	    <div>Clipper - fae monster info</div>
+		<div>Manacaym - cooking locations</div>
+	  </div>
+	</div>
+	</div>
+	<div class="footer">
+		<a href="#credits">Credits</a>
+		|
+		Sponsored by <a href="https://www.twitch.tv/retrommo">RetroMMO</a>
+	</div>
+	<div class="footer" style="right:1em; left:auto">
+		<a href="https://genfamap.com/">World</a>
+		|
+		<a href="https://genfamap.com/fae">Fae</a>
+		|
+		<a href="https://genfamap.com/dungeon">Dungeon</a>
+		|
+		<button id="routebutton">Start Route</button>
+		{% if admin %}
+		|
+		<button id="editbutton">Start Edit</button>
+		{% endif %}
+	</div>
+	<div id="editorpane">
+		<h2>Editor</h2>
+		<div class="editorform" id="pointmenu">
+			<button id="pick_add_monster">Add Monster</button>
+			<br>
+			<button id="pick_add_location">Add Location</button>
+			<br>
+			<button id="pick_add_icon">Add Icon</button>
+		</div>
+
+		<div class="editorform" id="add_monster">
+			<h4>add monster</h4>
+			<form id="add_monster_form">
+				<label>name</label>
+				<input type="text" name="name">
+				<br>
+
+				<label>level</label>
+				<input type="text" name="level">
+				<br>
+
+				<label>map</label>
+				<select name="map" id="add_monster_map">
+					<option value="world">world</option>
+					<option value="fae">fae</option>
+					<option value="dungeon">dungeon</option>
+				</select>
+				<br>
+
+				<label>position</label>
+				<input type="text" name="x" id="add_monster_x">
+				<input type="text" name="y" id="add_monster_y">
+				<br>
+
+				<input type="submit" value="submit" id="add_monster_submit">
+			</form>
+		</div>
+
+		<div class="editorform" id="edit_monster">
+			<h4>edit monster</h4>
+			<form style="display:none" id="delete_monster_form">
+				<label>map</label>
+				<select name="map" id="delete_monster_map">
+					<option value="world">world</option>
+					<option value="fae">fae</option>
+					<option value="dungeon">dungeon</option>
+				</select>
+				<br>
+
+				<label>position</label>
+				<input type="text" name="x" id="delete_monster_x">
+				<input type="text" name="y" id="delete_monster_y">
+				<br>
+			</form>
+			<button id="delete_monster_button">Delete Monster</button>
+		</div>
+
+		<div class="editorform" id="add_location">
+			<h4>add location</h4>
+			<form id="add_location_form">
+				<label>name</label>
+				<input type="text" name="name">
+				<br>
+
+				<label>map</label>
+				<select name="map" id="add_location_map">
+					<option value="world">world</option>
+					<option value="fae">fae</option>
+					<option value="dungeon">dungeon</option>
+				</select>
+				<br>
+
+				<label>position</label>
+				<input type="text" name="x" id="add_location_x">
+				<input type="text" name="y" id="add_location_y">
+				<br>
+
+				<label>destination map</label>
+				<select name="tomap" id="add_location_dest_map">
+					<option value="world">world</option>
+					<option value="fae">fae</option>
+					<option value="dungeon">dungeon</option>
+				</select>
+				<br>
+
+				<label>destination position</label>
+				<input type="text" name="tox" id="add_location_dest_x">
+				<input type="text" name="toy" id="add_location_dest_y">
+				<br>
+
+				<input type="submit" value="submit" id="add_location_submit">
+			</form>
+		</div>
+
+		<div class="editorform" id="edit_location">
+			<h4>edit location</h4>
+			<form style="display:none" id="delete_location_form">
+				<label>map</label>
+				<select name="map" id="delete_location_map">
+					<option value="world">world</option>
+					<option value="fae">fae</option>
+					<option value="dungeon">dungeon</option>
+				</select>
+				<br>
+
+				<label>position</label>
+				<input type="text" name="x" id="delete_location_x">
+				<input type="text" name="y" id="delete_location_y">
+				<br>
+			</form>
+			<button id="delete_location_button">Delete Location</button>
+		</div>
+
+		<div class="editorform" id="edit_location">
+			<h4>edit location</h4>
+			<button id="delete_location_button">Delete Location</button>
+		</div>
+
+		<div class="editorform" id="add_icon">
+			<h4>todo: add icon</h4>
+		</div>
+
+	</div>
+{% endblock %}

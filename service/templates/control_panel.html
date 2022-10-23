@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block head %}
+	<title>Genfamap</title>
+{% endblock %}
+{% block content %}
+	{% if error %}
+	<h1 style="color:red">{{error}}</h1>
+	{% endif %}
+	<div><p id="api_response"></p></div>
+	<h2>ban user</h2>
+	<form id="form_ban">
+		<label>username</label>
+		<input type="text" name="username">
+		<input type="submit" value="submit">
+	</form>
+	<h2>add monster</h2>
+	<form id="form_add_monster">
+		<label>name</label>
+		<input type="text" name="name">
+		<label>level</label>
+		<input type="text" name="level">
+		<label>map</label>
+		<select name="map">
+			<option value="world">world</option>
+			<option value="fae">fae</option>
+			<option value="dungeon">dungeon</option>
+		</select>
+		<label>position</label>
+		<input type="text" name="x" placeholder="x">
+		<input type="text" name="y" placeholder="y">
+		<input type="submit" value="submit">
+	</form>
+	<h2>add location</h2>
+	<form id="form_add_location">
+		<label>name</label>
+		<input type="text" name="name">
+		<label>map</label>
+		<select name="map">
+			<option value="world">world</option>
+			<option value="fae">fae</option>
+			<option value="dungeon">dungeon</option>
+		</select>
+		<label>position</label>
+		<input type="text" name="x" placeholder="x">
+		<input type="text" name="y" placeholder="y">
+		<label>destination map</label>
+		<select name="tomap">
+			<option value="world">world</option>
+			<option value="fae">fae</option>
+			<option value="dungeon">dungeon</option>
+		</select>
+		<label>destination position</label>
+		<input type="text" name="tox" placeholder="x">
+		<input type="text" name="toy" placeholder="y">
+		<input type="submit" value="submit">
+	</form>
+	<script>
+function displayResult(result) {
+	let p = document.getElementById("api_response");
+	if (result.exceptionid) {
+		p.innerText = "result: " + result.status + " - " + result.exceptionid;
+	} else {
+		p.innerText = "result: " + result.status;
+	}
+}
+
+let add_monster = document.getElementById("form_add_monster");
+add_monster.addEventListener("submit", function(e) {
+	let data = new FormData(add_monster);
+	let xhr = new XMLHttpRequest();
+	xhr.responseType = 'json';
+	xhr.onload = function() {
+		displayResult(xhr.response);
+	}
+	xhr.open("POST", "/api/add_monster", true);
+	xhr.send(data);
+	e.preventDefault();
+	return false;
+});
+
+let add_location = document.getElementById("form_add_location");
+add_location.addEventListener("submit", function(e) {
+	let data = new FormData(add_location);
+	let xhr = new XMLHttpRequest();
+	xhr.responseType = 'json';
+	xhr.onload = function() {
+		displayResult(xhr.response);
+	}
+	xhr.open("POST", "/api/add_location", true);
+	xhr.send(data);
+	e.preventDefault();
+	return false;
+});
+
+let ban_username = document.getElementById("form_ban");
+ban_username.addEventListener("submit", function(e) {
+	let data = new FormData(ban_username);
+	let xhr = new XMLHttpRequest();
+	xhr.responseType = 'json';
+	xhr.onload = function() {
+		displayResult(xhr.response);
+	}
+	xhr.open("POST", "/api/ban", true);
+	xhr.send(data);
+	e.preventDefault();
+	return false;
+});
+	</script>
+{% endblock %}

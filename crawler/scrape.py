@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw
 import requests
 import zipfile
 import pathlib
+import pprint
 import time
 import json
 import os
@@ -386,190 +387,126 @@ def cmd_render(args):
 
 
 def cmd_icons(args):
-    region = args.region
-    cache_path = os.path.join(CACHE_DIR, CACHE_VERSION, region)
-    files = os.listdir(cache_path)
+    regions = args.regions
 
-    map_files = {}
-    for filename in files:
-        if filename.endswith('_combined.json'):
-            with open(os.path.join(cache_path, filename)) as f:
-                map_files[filename] = json.load(f)
+    results = {}
 
-    mminx = 100
-    mmaxx = 0
-    mminy = 100
-    mmaxy = 0
+    for region in regions:
+        results[region] = []
 
-    # first calc each dimension
-    for filename, data in map_files.items():
-        xs, ys, _ = filename.split('_')
-        x = int(xs)
-        y = int(ys)
+        pathregion = region if region != 'fae' else 'fairy'
+        cache_path = os.path.join(CACHE_DIR, CACHE_VERSION, pathregion)
+        files = os.listdir(cache_path)
+        map_files = {}
+        for filename in files:
+            if filename.endswith('_combined.json'):
+                with open(os.path.join(cache_path, filename)) as f:
+                    map_files[filename] = json.load(f)
 
-        if x < mminx:
-            mminx = x
-        if x > mmaxx:
-            mmaxx = x
-        if y < mminy:
-            mminy = y
-        if y > mmaxy:
-            mmaxy = y
+        mminx = 100
+        mmaxx = 0
+        mminy = 100
+        mmaxy = 0
 
-    offsetx = 0
-    offsety = 0
+        # first calc each dimension
+        for filename, data in map_files.items():
+            xs, ys, _ = filename.split('_')
+            x = int(xs)
+            y = int(ys)
 
-    if mminx < 0:
-        offsetx = abs(mminx)
+            if x < mminx:
+                mminx = x
+            if x > mmaxx:
+                mmaxx = x
+            if y < mminy:
+                mminy = y
+            if y > mmaxy:
+                mmaxy = y
 
-    if mminy < 0:
-        offsety = abs(mminy)
+        offsetx = 0
+        offsety = 0
 
-    mmaxx += offsetx
-    mminx += offsetx
-    mmaxy += offsety
-    mminy += offsety
+        if mminx < 0:
+            offsetx = abs(mminx)
 
-    mdx = (mmaxx - mminx) + 1
-    mdy = (mmaxy - mminy) + 1
+        if mminy < 0:
+            offsety = abs(mminy)
 
-    sw = WSIZE
-    sh = WSIZE
+        mmaxx += offsetx
+        mminx += offsetx
+        mmaxy += offsety
+        mminy += offsety
 
-    # add icons
+        mdx = (mmaxx - mminx) + 1
+        mdy = (mmaxy - mminy) + 1
 
-    icons = {}
-    markers = []
-    groups = {
-        'toggle all': '', # defined in js
-        'quest': 'var questGroup = new L.LayerGroup().addTo(map);',
-        'shop':  'var shopGroup = new L.LayerGroup().addTo(map);',
-        'bank':  'var bankGroup = new L.LayerGroup().addTo(map);',
-        'monster': '',  # defined in js
-        'location': '', # defined in js
-    }
+        sw = WSIZE
+        sh = WSIZE
 
-    for filename, data in map_files.items():
-        if region == 'dungeon':
-            # TODO: find out why dungeon is broken
-            break
-        xs, ys, _ = filename.split('_')
-        wx = int(xs)
-        wy = -1 * int(ys)
+        # add icons
 
-        baseurl = 'https://genfamap.snwhd.com/icons'
-        points = data.get('pointsOfInterest', [])
-        for point in points:
-            icon = point['icon']
+        icons = {}
+        markers = []
 
-            # global points
-            gx = int(point['x'])
-            gy = int(point['y'])
+        for filename, data in map_files.items():
+            if region == 'dungeon':
+                # TODO: find out why dungeon is broken
+                # TODO: fae might be too
+                break
 
-            # global to local
-            lx = gx % sw
-            ly = gy % sh
+            xs, ys, _ = filename.split('_')
+            wx = int(xs)
+            wy = -1 * int(ys)
 
-            # again, invert the Ys
-            ly = (sh - ly) - 1
+            points = data.get('pointsOfInterest', [])
+            for point in points:
+                icon = point['icon']
 
-            dx = wx + (lx / sw)
-            dy = wy + (ly / sh)
+                # global points
+                gx = int(point['x'])
+                gy = int(point['y'])
 
-            if icon not in icons:
-                icons[icon] = f'var {icon}Icon = new GenIcon({{iconUrl: "{baseurl}/{icon}.png"}});'
+                # global to local
+                lx = gx % sw
+                ly = gy % sh
 
-            group = ''
-            popup = '';
-            quest = point.get('quest')
-            store = point.get('store')
-            type_ = point.get('type', '')
+                # again, invert the Ys
+                ly = (sh - ly) - 1
 
-            if quest is not None:
-                popup = quest
-                group = 'questGroup'
-            elif store is not None:
-                if store.startswith('location'):
-                    popup = store.split('-')[-1]
-                elif store.startswith('skill'):
-                    popup = store.split('-', 1)[1]
-                elif store.startswith('tutorial'):
-                    popup = store.split('-', 2)[2]
-                group = 'shopGroup'
-            elif type_.startswith('skill-'):
-                _, skill, popup = type_.split('-', 2)
-                popup = popup.split('-')[-1]
-                if skill not in groups:
-                    groups[skill] = f'var {skill}Group = new L.LayerGroup().addTo(map);'
-                group = f'{skill}Group'
-            elif icon == 'bank':
-                group = 'bankGroup'
-            
-            if popup != '':
-                popup = f'.bindPopup("{popup}")'
-            if group == '':
-                group = 'map'
+                dx = wx + (lx / sw)
+                dy = wy + (ly / sh)
 
-            markers.append(f"L.marker([{dy:0.03f}, {dx:0.03f}], {{icon: {icon}Icon}}).on('click', markerClicked).addTo({group}){popup};")
+                group = ''
+                popup = '';
+                quest = point.get('quest')
+                store = point.get('store')
+                type_ = point.get('type', '')
 
-        # objects = data.get('objects' {}),
-        # for key, obj in objects.items():
-        #     x = int(obj['x'])
-        #     y = int(obj['y'])
+                if quest is not None:
+                    popup = quest
+                    group = 'quest'
+                elif store is not None:
+                    if store.startswith('location'):
+                        popup = store.split('-')[-1]
+                    elif store.startswith('skill'):
+                        popup = store.split('-', 1)[1]
+                    elif store.startswith('tutorial'):
+                        popup = store.split('-', 2)[2]
+                    group = 'shop'
+                elif type_.startswith('skill-'):
+                    _, skill, popup = type_.split('-', 2)
+                    popup = popup.split('-')[-1]
+                    group = skill
+                elif icon == 'bank':
+                    group = 'bank'
 
-        #     icon = ''
-        #     group = ''
-        #     popup = '';
+                if group == '':
+                    raise ValueError('no group!')
 
-        #     name = obj['object']
-        #     if name.startswith('skill-'):
-        #         _, skill, popup = type_.split('-', 2)
-        #         if 'quest-' in popup:
-        #             popup = popup.split('-')[-1]
-        #         if skill not in groups:
-        #             groups[skill] = f'var {skill}Group = new L.LayerGroup().addTo(map);'
-        #         group = f'{skill}Group'
-        #         if skill == 'mining':
-        #             icon = 'resource_mine'
-        #         elif skill == 'botany':
-        #             icon = 'resource_plant'
-        #         elif skill == 'butchery':
-        #             icon = 'process_butchery'
-        #         elif skill == 'cooking':
-        #             icon = 'process_cooking'
-        #         elif skill == 'forging':
-        #             if 'furnace' in popup or 'forge' in popup:
-        #                 icon = 'process_forge'
-        #             else:
-        #                 icon = 'process_anvil'
+                results[region].append((dx, dy, icon, group, popup))
 
-        #     if icon not in icons:
-        #         icons[icon] = f'var {icon}Icon = new GenIcon({{iconUrl: "{baseurl}/{icon}.png"}});'
-
-        #     markers.append(f"L.marker([{dy:0.03f}, {dx:0.03f}], {{icon: {icon}Icon}}).on('click', markerClicked).addTo({group}){popup};")
-
-    r = 'fae' if region == 'fairy' else region
-    print(f'        case "{r}":')
-
-    indent = ' ' * 12
-    for group in groups.values():
-        if group != '':
-            print(indent + group)
-    print('')
-
-    print(indent + 'var groups = {')
-    for i, name in enumerate(groups.keys()):
-        comma = ',' if i < len(groups) else ''
-        print(f'{indent}    "{name}": {name.replace(" ", "_")}Group{comma}')
-    print(indent + '};')
-    print(indent + 'var layerControl = L.control.layers(baseMaps, groups).addTo(map);');
-
-    print('')
-    for icondef in icons.values():
-        print(indent + icondef)
-    print('')
-    for marker in markers:
-        print(indent + marker)
+    print('icons = ', end='')
+    pprint.pprint(results)
 
 
 if __name__ == '__main__':
@@ -599,7 +536,7 @@ if __name__ == '__main__':
     cmd.set_defaults(func=cmd_render)
 
     cmd = parsers.add_parser('icons')
-    cmd.add_argument('region', type=str)
+    cmd.add_argument('regions', type=str, nargs='+')
     cmd.set_defaults(func=cmd_icons)
 
     args = parser.parse_args()
