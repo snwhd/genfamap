@@ -622,13 +622,13 @@ window.onload = (event) => {
         interactive: true
     }).addTo(map);
 
-    // default view
-    map.fitBounds(latLngBounds);
-
     // set bounds
     map.setMinZoom(minZoom);
     map.setMaxZoom(maxZoom);
     map.setMaxBounds(outerBounds);
+
+    // default view
+    map.fitBounds(latLngBounds);
 
     //
     // Icons / Markers / Etc
@@ -771,5 +771,8 @@ window.onload = (event) => {
     setupRouteButton();
     setupAdminTools();
 
-    // done.
+    // done: display
+    setTimeout(function() {
+        document.getElementById('map').style.visibility = 'visible';
+    }, 500);
 }

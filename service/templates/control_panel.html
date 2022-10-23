@@ -8,8 +8,6 @@ body {
 }
 .contentblock {
 	width: fit-content;
-	max-height: 20em;
-	overflow-y: scroll;
 	margin: auto;
 	border-style: solid;
 	border-color: #dddddd;
@@ -20,12 +18,21 @@ table {
     margin: 25px 0;
     font-size: 0.9em;
     font-family: sans-serif;
+
     min-width: 400px;
+	max-height: 20em;
+	overflow: auto;
+	display: block;
+}
+table thead th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background-color: white;
+	box-shadow: inset 0px -1px #dddddd;
 }
 table thead tr {
     text-align: center;
-    border-bottom: thin solid #dddddd;
-    border-top: thin solid #dddddd;
 }
 table th,
 table td {
