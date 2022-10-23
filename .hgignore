@@ -1,4 +1,6 @@
 .swp$
-.pyc
+.pyc$
 .exceptionlog
-venv
+.db$
+venv/
+backups/
