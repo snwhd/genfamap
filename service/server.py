@@ -16,6 +16,7 @@ from werkzeug.utils import (
 from secure_cookie.cookie import SecureCookie
 
 from jinja2 import Environment, FileSystemLoader
+from datetime import datetime
 from pathlib import Path
 from enum import Enum
 import argparse
@@ -31,6 +32,7 @@ from database import Database
 
 SESSION_COOKIE = 's'
 COOKIE_SECRET  = b'o\x1f\r\xf6^\xf9\x14\x0e\xdf\xe5B\xf6\x1cE\xbd\x15'
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
 def make_app():
@@ -104,11 +106,36 @@ class WebServer(object):
     # REQUEST HANDLING
     #
 
+    def ratelimit(
+        self,
+        request,
+        action: str,
+        timeout = 10,
+        threshold = 3,
+        throw=True,
+    ) -> None:
+        peer = request.remote_addr
+        with Database() as db:
+            tries = db.get_ratelimit(peer, action, limit=threshold)
+            if len(tries) >= threshold:
+                oldest = datetime.strptime(tries[-1], DATE_FORMAT)
+                delta = (datetime.now() - oldest)
+                if (delta.total_seconds() / 60) < timeout:
+                    if throw:
+                        raise ValueError('ratelimit')
+                    return True
+
+            # did not hit ratelimit, so add entry
+            db.ratelimit(peer, action)
+            return False
+
     def run(self, environ, start_response):
         """handle wsgi requests"""
         request = Request(environ)
         response = self.handle(request) or NotFound()
         if not isinstance(response, HTTPException): # and request.session.should_save:
+            if request.session.get('t') is None:
+                request.session['t'] = datetime.now().strftime(DATE_FORMAT)
             response.set_cookie(
                 SESSION_COOKIE,
                 request.session.serialize(),
@@ -152,14 +179,20 @@ class WebServer(object):
     def handle_confirm(self, request):
         token = request.form.get('token')
         if token is not None:
+            if self.ratelimit(request, 'confirm', throw=False):
+                return self.render('confirm.html', error='Too Many Tries.')
+
             with Database() as db:
                 user = db.get_user_by_token(token)
                 if user is not None:
                     uid, name, perm, token = user
                     request.session['u'] = name
                     request.session['p'] = perm
+                    request.session['t'] = datetime.now().strftime(DATE_FORMAT)
+                    db.log(name, 'confirmed')
                     db.set_user_token(name, None)
                     return redirect('/')
+
             return self.render('confirm.html', error='Invalid Token')
         return self.render('confirm.html')
 
@@ -189,9 +222,11 @@ class WebServer(object):
 
             t = self.generate_token()
             if db.user_exists(user):
+                db.log(username, f'gen_token_for : {user}')
                 db.set_user_token(user, t)
                 db.set_user_permission(user, p.value)
             else:
+                db.log(username, f'gen_token_new_user : {user}')
                 db.insert_user(user, p.value, t)
             return self.render('token.html', token=f'{user}:{p.value} - {t}')
 
@@ -203,10 +238,20 @@ class WebServer(object):
     def handle_control_panel(self, request):
         u = request.session.get('u')
         p = request.session.get('p')
-        if (p != Permission.ADMIN.value and p != Permission.EDITOR.value):
+        if (p != Permission.ADMIN.value):
             print(f'access denied to control panel: {u} - {p}')
             return redirect('/')
-        return self.render('control_panel.html')
+        with Database() as db:
+            bans = db.get_bans()
+            users = [
+                [username, permission, (username in bans), (token is None) ]
+                for _, username, permission, token in db.get_users()
+            ]
+
+            limit = request.args.get('logs', 25)
+            logs = db.select('SELECT l.time, u.username, l.action FROM logs AS l JOIN users AS u ON l.actor = u.id ORDER BY l.time DESC LIMIT ?', (limit,))
+
+        return self.render('control_panel.html', users=users, logs=logs)
 
     def handle_api(self, request, action):
         response = {}
@@ -236,7 +281,13 @@ class WebServer(object):
                         db.meta_set_modified(False)
                     assert self.map_info is not None
                     response['data'] = self.map_info
-            else: # all priv APIs here
+            elif action == 'retro':
+                # okay, not read only...
+                with Database() as db:
+                    db.sponsor('retrommo', request.remote_addr)
+
+            # all priv/write APIs below
+            else:
                 username = request.session.get('u')
                 if username is None:
                     raise ValueError('no username accessing control panel')
@@ -258,8 +309,8 @@ class WebServer(object):
                     level = int(level)
                     boss = False # TODO: submit boss in form
                     params = (map_name, x, y, name, level, boss)
+                    log = f'{action} : {params}'
                     with Database() as db:
-                        log = f'{action} : {params}'
                         db.log(username, log)
                         db.insert_monster(*params)
                         db.meta_set_modified(True)
@@ -275,8 +326,8 @@ class WebServer(object):
                     x = float(x)
                     y = float(y)
                     params = (x, y, map_name)
+                    log = f'{action} : {params}'
                     with Database() as db:
-                        log = f'{action} : {params}'
                         db.log(username, log)
                         db.delete_monster(*params)
                         db.meta_set_modified(True)
@@ -299,8 +350,8 @@ class WebServer(object):
                     toy = float(toy)
                     name = escape(name)
                     params = (map_name, x, y, name, tomap, tox, toy)
+                    log = f'{action} : {params}'
                     with Database() as db:
-                        log = f'{action} : {params}'
                         db.log(username, log)
                         db.insert_location(*params)
                         db.meta_set_modified(True)
@@ -316,8 +367,8 @@ class WebServer(object):
                     x = float(x)
                     y = float(y)
                     params = (x, y, map_name)
+                    log = f'{action} : {params}'
                     with Database() as db:
-                        log = f'{action} : {params}'
                         db.log(username, log)
                         db.delete_location(*params)
                         db.meta_set_modified(True)
@@ -336,8 +387,8 @@ class WebServer(object):
                     y = float(y)
                     mapgroup = self.icon_to_mapgroup(icon)
                     params = (map_name, x, y, icon, mapgroup, name)
+                    log = f'{action} : {params}'
                     with Database() as db:
-                        log = f'{action} : {params}'
                         db.log(username, log)
                         db.insert_icon(*params)
                         db.meta_set_modified(True)
@@ -355,8 +406,8 @@ class WebServer(object):
                     x = float(x)
                     y = float(y)
                     params = (map_name, x, y)
+                    log = f'{action} : {params}'
                     with Database() as db:
-                        log = f'{action} : {params}'
                         db.log(username, log)
                         db.delete_icon(*params)
                         db.meta_set_modified(True)
@@ -367,8 +418,10 @@ class WebServer(object):
                     banned = request.form.get('username')
                     if banned is None:
                         raise ValueError('username not provided')
+                    if banned == 'dan':
+                        raise ValueError('dont ban dan')
+                    log = f'{action} : {banned}'
                     with Database() as db:
-                        log = f'{action} : {banned}'
                         db.log(username, log)
                         db.ban_username(banned)
 

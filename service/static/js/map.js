@@ -1,3 +1,9 @@
+function retro(e) {
+    let request = new XMLHttpRequest();
+    request.open("POST", "/api/retro", true);
+    request.send();
+}
+
 function toggleLayersOff() {
     let layersDivs = document.getElementsByClassName('leaflet-control-layers-overlays');
     if (!layersDivs || layersDivs.length != 1) {

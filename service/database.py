@@ -1,8 +1,14 @@
 # from pysqlcipher3 import dbapi2 as sqlite
 import sqlite3 as sqlite
 
+from datetime import datetime
+
 import dbschema
 import util
+
+
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 
 class Database(object):
 
@@ -203,8 +209,28 @@ class Database(object):
         user = self.get_user(actor)
         if user is None:
             raise ValueError('invalid user')
-        params = (user[0], action)
-        self.insert('INSERT INTO logs VALUES (NULL, ?, ?)', params)
+        date = datetime.now().strftime(DATE_FORMAT)
+        params = (date, user[0], action)
+        self.insert('INSERT INTO logs VALUES (NULL, ?, ?, ?)', params)
+
+    def ratelimit(
+        self,
+        actor: str,
+        action: str,
+    ) -> None:
+        date = datetime.now().strftime(DATE_FORMAT)
+        params = (date, actor, action)
+        self.insert('INSERT INTO ratelimit VALUES (NULL, ?, ?, ?)', params)
+
+    def get_ratelimit(
+        self,
+        actor: str,
+        action: str,
+        limit = 10,
+    ) -> None:
+        params = (actor, action, limit)
+        rows = self.select('SELECT time FROM ratelimit WHERE actor=? and action=? ORDER BY time DESC LIMIT ?', params)
+        return [row[0] for row in rows]
 
     def meta_is_modified(self) -> bool:
         rows = self.select('SELECT * FROM meta')
@@ -303,3 +329,6 @@ class Database(object):
 
     def get_bans(self):
         return set([x[0] for x in self.select('SELECT username FROM moderation WHERE action="ban"')])
+
+    def sponsor(self, sponsor, client):
+        self.insert('INSERT INTO sponsors VALUES(NULL, ?, ?)', (sponsor, client))

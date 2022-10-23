@@ -79,12 +79,13 @@ definitions = {
         )''',
         '''CREATE TABLE IF NOT EXISTS logs (
             id INTEGER PRIMARY KEY,
+            time STRING NOT NULL,
             actor INTEGER NOT NULL,
             action STRING NOT NULL,
 
             FOREIGN KEY(actor) REFERENCES users(id)
         )''',
-        '''Create TABLE IF NOT EXISTS icons (
+        '''CREATE TABLE IF NOT EXISTS icons (
             id INTEGER PRIMARY KEY,
             map INTEGER NOT NULL,
             x REAL NOT NULL,
@@ -95,6 +96,17 @@ definitions = {
             manual INTEGER NOT NULL,
 
             FOREIGN KEY(map) REFERENCES maps(id)
+        )''',
+        '''CREATE TABLE IF NOT EXISTS sponsors (
+            id INTEGER PRIMARY KEY,
+            sponsor STRING NOT NULL,
+            client STRING NOT NULL
+        )''',
+        '''CREATE TABLE IF NOT EXISTS ratelimit (
+            id INTEGER PRIMARY KEY,
+            time STRING NOT NULL,
+            actor STRING NOT NULL,
+            action STRING NOT NULL
         )''',
     ],
 }
