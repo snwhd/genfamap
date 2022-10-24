@@ -243,8 +243,8 @@ window.onload = (event) => {
         for (var num of pieces) {
             position.push(parseFloat(num));
             if (position.length == 2) {
-                // invert (x, y) to (y, x)... annoying, but I want url to read x_y_x_y_...
-                route.push([position[1], position[0]]);
+                // route.push([position[0], position[1]]);
+                route.push(position);
                 position = [];
             }
         }

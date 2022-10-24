@@ -50,6 +50,14 @@ table tbody tr:nth-of-type(even) {
 table tbody tr:last-of-type {
     border-bottom: 1px solid #dddddd;
 }
+#api_response {
+	position: fixed;
+	top: 1em;
+	left: 1em;
+	margin: 0;
+	color: black;
+	font-size: 2em;
+}
     </style>
 {% endblock %}
 {% block content %}
@@ -132,14 +140,18 @@ function displayResult(result) {
     let p = document.getElementById("api_response");
     if (result.exceptionid) {
         p.innerText = "result: " + result.status + " - " + result.exceptionid;
+		p.style.color = "red";
     } else {
         p.innerText = "result: " + result.status;
+		p.style.color = "black";
     }
 }
 
 let ban_username = document.getElementById("form_ban");
 ban_username.addEventListener("submit", function(e) {
     submitBanForm();
+    e.preventDefault();
+    return false;
 });
 
 function submitBanForm() {
@@ -151,8 +163,6 @@ function submitBanForm() {
     }
     xhr.open("POST", "/api/ban", true);
     xhr.send(data);
-    e.preventDefault();
-    return false;
 }
 
 function doBan(user) {
