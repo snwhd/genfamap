@@ -97,6 +97,8 @@ window.onload = (event) => {
     let minZoom = 0; // calculated later
     let maxZoom = 12;
 
+    setupMapSpecificStyle(mapName);
+
     //
     // anchor to locations on map
     //
@@ -564,6 +566,10 @@ window.onload = (event) => {
             let m = loc.destination.map;
             let x = loc.destination.position[0];
             let y = loc.destination.position[1];
+            if (m == 'world') {
+                // world is hardcoded to the root path
+                m = '';
+            }
             let popup = '<a href="/' + m + '#' + x + '_' + y + '">' + loc.name + '</a>';
             new CustomMarker(loc.position, {
                 icon: purpleIcon,
@@ -576,13 +582,15 @@ window.onload = (event) => {
 
     function addIcons(icons) {
         // draw a maker for each monster
-        for (var icon of icons[mapName]) {
-            new CustomMarker(icon.position, {
-                icon: iconIcons[icon.icon],
-                markerType: 'icon'
-            }).on('click', markerClicked)
-              .bindPopup(icon.name)
-              .addTo(iconGroups[icon.group]);
+        if (icons[mapName]) {
+            for (var icon of icons[mapName]) {
+                new CustomMarker(icon.position, {
+                    icon: iconIcons[icon.icon],
+                    markerType: 'icon'
+                }).on('click', markerClicked)
+                  .bindPopup(icon.name)
+                  .addTo(iconGroups[icon.group]);
+            }
         }
     }
 
@@ -596,6 +604,24 @@ window.onload = (event) => {
                 console.log(response);
             }
         });
+    }
+
+    //
+    // style
+    //
+
+    function setupMapSpecificStyle(mapName) {
+        console.log('style for ' + mapName);
+        switch (mapName) {
+            case 'world':
+                break;
+            case 'dungeon':
+                document.body.style.backgroundColor = 'black';
+                document.getElementById('map').style.backgroundColor = 'black';
+                break;
+            case 'fae':
+                break;
+        }
     }
 
     //
