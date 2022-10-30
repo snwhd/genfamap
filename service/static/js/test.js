@@ -413,7 +413,8 @@ window.onload = (event) => {
                     console.log(response);
                     if (response.status == 'okay') {
                         let text = data.get('name') + " (level " + data.get('level') + ")";
-                        new CustomMarker([data.get('y'), data.get('x')], {
+                        let pos = [data.get('y'), data.get('x')];
+                        new CustomMarker(genToLeaf(pos), {
                             markerType: 'monster'
                         }).bindPopup(text)
                           .on('click', markerClicked)
@@ -463,7 +464,7 @@ window.onload = (event) => {
                         let y = data.get('toy');
                         let popup = '<a href="/' + m + '#' + x + '_' + y + '">' + data.get('name') + '</a>';
                         let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
-                        new CustomMarker(pos, {
+                        new CustomMarker(genToLeaf(pos), {
                             icon: purpleIcon,
                             markerType: 'location'
                         }).bindPopup(popup)
@@ -670,7 +671,6 @@ window.onload = (event) => {
             }
             let text = monster.name + " (level " + monster.level + ")";
             new CustomMarker(genToLeaf(monster.position), opts)
-            // new CustomMarker([monster.position[0] * 128 + 256, monster.position[1] * 128], opts)
                 .bindPopup(text)
                 .on('click', markerClicked)
                 .addTo(monsterGroup);
@@ -689,7 +689,6 @@ window.onload = (event) => {
             }
             let popup = '<a href="/' + m + '#' + x + '_' + y + '">' + loc.name + '</a>';
             new CustomMarker(genToLeaf(loc.position), {
-            // new CustomMarker([loc.position[0] * 128 + 256, loc.position[1] * 128], {
                 icon: purpleIcon,
                 markerType: 'location'
             }).bindPopup(popup)
@@ -703,7 +702,6 @@ window.onload = (event) => {
         if (icons[mapName]) {
             for (var icon of icons[mapName]) {
                 new CustomMarker(genToLeaf(icon.position), {
-                // new CustomMarker([icon.position[0] * 128 + 256, icon.position[1] * 128], {
                     icon: iconIcons[icon.icon],
                     markerType: 'icon'
                 }).on('click', markerClicked)
