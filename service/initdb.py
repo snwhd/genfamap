@@ -289,9 +289,16 @@ def backup():
 
 
 def convert_coord_system():
+    assert False, 'dont run this again...'
 
     with Database() as db:
         db.execute('UPDATE monsters SET x=x*128, y=y*128+256')
         db.execute('UPDATE locations SET x=x*128, tox=tox*128, y=y*128+256, toy=toy*128+256')
         db.execute('UPDATE icons SET x=x*128, y=y*128+256')
 
+
+def round_coords():
+    with Database() as db:
+        db.execute('UPDATE monsters SET x=cast(x as int), y=cast(y as int)')
+        db.execute('UPDATE locations SET x=cast(x as int), tox=cast(tox as int), y=cast(y as int), toy=cast(toy as int)')
+        db.execute('UPDATE icons SET x=cast(x as int), y=cast(y as int)')
