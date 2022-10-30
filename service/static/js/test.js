@@ -128,8 +128,8 @@ window.onload = (event) => {
             }
 
             // the first
-            oX = parseFloat(pieces[0]);
-            oY = invertY(parseFloat(pieces[1]));
+            oX = genToLeafX(parseFloat(pieces[0]));
+            oY = genToLeafY(parseFloat(pieces[1]));
             if (pieces.length >= 3) {
                 // optional zoom level
                 zoom = parseFloat(pieces[2]);
@@ -173,7 +173,7 @@ window.onload = (event) => {
         currentAnchorX = lon;
         currentAnchorY = lat;
         currentAnchorZoom = zoom;
-        window.location.hash = '#' + lon + '_' + invertY(lat) + '_' + zoom;
+        window.location.hash = '#' + leafToGenX(lon) + '_' + leafToGenY(lat) + '_' + zoom;
     }
 
     function setupAnchors() {
@@ -246,7 +246,7 @@ window.onload = (event) => {
         for (var num of pieces) {
             position.push(parseFloat(num));
             if (position.length == 2) {
-                route.push([invertY(position[1]), position[0]]);
+                route.push(genToLeaf(position));
                 position = [];
             }
         }
@@ -278,7 +278,7 @@ window.onload = (event) => {
             window.location.hash = '#route';
         }
 
-        let newPoint = '_' + lon + '_' + invertY(lat);
+        let newPoint = '_' + lon + '_' + leafToGen(lat);
         window.location.hash = window.location.hash + newPoint;
     }
         
@@ -286,8 +286,28 @@ window.onload = (event) => {
         document.getElementById('routebutton').onclick = toggleRoute;
     }
 
-    function invertY(y) {
-        return (y1 - 128) - y;
+    function genToLeaf(pos) {
+        return [genToLeafY(pos[0]), genToLeafX(pos[1])];
+    }
+
+    function leafToGen(pos) {
+        return [leafToGenY(pos[0]), leafToGenX(pos[1])];
+    }
+
+    function genToLeafY(y) {
+        return ((y1 + y0) - y) + 1;
+    }
+
+    function genToLeafX(x) {
+        return x;
+    }
+
+    function leafToGenY(y) {
+        return ((y1 + y0) - y) - 1;
+    }
+
+    function leafToGenX(x) {
+        return x;
     }
 
     //
@@ -557,7 +577,7 @@ window.onload = (event) => {
                 opts.icon = redIcon;
             }
             let text = monster.name + " (level " + monster.level + ")";
-            new CustomMarker(monster.position, opts)
+            new CustomMarker(genToLeaf(monster.position), opts)
             // new CustomMarker([monster.position[0] * 128 + 256, monster.position[1] * 128], opts)
                 .bindPopup(text)
                 .on('click', markerClicked)
@@ -576,7 +596,7 @@ window.onload = (event) => {
                 m = '';
             }
             let popup = '<a href="/' + m + '#' + x + '_' + y + '">' + loc.name + '</a>';
-            new CustomMarker(loc.position, {
+            new CustomMarker(genToLeaf(loc.position), {
             // new CustomMarker([loc.position[0] * 128 + 256, loc.position[1] * 128], {
                 icon: purpleIcon,
                 markerType: 'location'
@@ -590,7 +610,7 @@ window.onload = (event) => {
         // draw a maker for each monster
         if (icons[mapName]) {
             for (var icon of icons[mapName]) {
-                new CustomMarker(icon.position, {
+                new CustomMarker(genToLeaf(icon.position), {
                 // new CustomMarker([icon.position[0] * 128 + 256, icon.position[1] * 128], {
                     icon: iconIcons[icon.icon],
                     markerType: 'icon'
