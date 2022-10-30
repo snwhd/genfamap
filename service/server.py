@@ -183,7 +183,9 @@ class WebServer(object):
             Permission.ADMIN.value,
             Permission.EDITOR.value,
         )
-        return self.render('map.html', admin=is_admin)
+        is_test = request.args.get('test') is not None
+        print(is_test)
+        return self.render('map.html', admin=is_admin, is_test=is_test)
 
     def handle_confirm(self, request):
         token = request.form.get('token')

@@ -14,7 +14,11 @@
 	></script>
 	<script src="https://unpkg.com/leaflet-ant-path" type="text/javascript"></script>
 	<link rel="stylesheet" href="/static/css/main.css">
-	<script src="/static/js/map.js"></script>
+	{% if is_test %}
+		<script src="/static/js/test.js"></script>
+	{% else %}
+		<script src="/static/js/map.js"></script>
+	{% endif %}
 {% endblock %}
 {% block content %}
 	<div style="visibility: hidden;"id="map"></div>
@@ -35,7 +39,7 @@
 	<div class="footer">
 		<a href="#credits">Contributors</a>
 		|
-		Sponsored by <a onclick="retro()" href="https://www.twitch.tv/retrommo">RetroMMO</a>
+		Sponsored by <a onclick="retro()" href="https://www.twitch.tv/evanmmo">EvanMMO</a>
 	</div>
 	<div class="footer" style="right:1em; left:auto">
 		<a href="https://genfamap.com/">World</a>

@@ -16,13 +16,50 @@ import os
 
 
 CACHE_DIR = 'files'
-CACHE_VERSION = '0.102'
+CACHE_VERSION = '0.103'
 STATIC_ENDPOINT = f'https://genfanad-static.s3.us-east-2.amazonaws.com/versioned/{CACHE_VERSION}/data_client'
 IMAGES_DIR = 'img'
 HTML_DIR = 'html'
 
 WSIZE = 128
 # TODO: why is calculated size 129?
+
+KNOWN_SEGMENTS = {
+    'world': [
+        (-1, 0),
+        (-1, 1),
+        (-1, 2),
+        (-2, 2),
+        ( 0, 0),
+        ( 0, 1),
+        ( 0, 2),
+        ( 0, 3),
+        ( 1,-1),
+        ( 1, 0),
+        ( 1, 1),
+        ( 2, 0),
+        ( 2, 1),
+        ( 3,-1),
+        ( 3, 0),
+        ( 3, 1),
+    ],
+    'dungeon': [
+        (-1, 1),
+        (-2, 2),
+        ( 0, 0),
+        ( 0, 1),
+        ( 0, 3),
+        ( 1, 0),
+        ( 3, 1),
+    ],
+    'fairy': [
+        (-1, 0),
+        ( 0, 0),
+        ( 0, 1),
+        ( 1, 0),
+        ( 1, 1),
+    ],
+}
 
 
 _invalid_icons = set()
@@ -141,7 +178,9 @@ def get_segment_data(
 
 def cmd_crawl(args):
     visited = set()
-    todo = set([(0, 0)])
+
+    todo = set(KNOWN_SEGMENTS.get(args.region, []))
+    todo.add((0, 0))
 
     while len(todo):
         pos = todo.pop()
@@ -252,11 +291,11 @@ def cmd_render(args):
     print(f'world size: {mdx}x{mdy}')
     print(f'segment size: {sw}x{sh}')
 
-    bgcolor = (255, 255, 255, 255)
+    bgcolor = (255, 255, 255, 0)
     if region == 'dungeon':
         bgcolor = (0, 0, 0, 255)
     img = Image.new(
-        mode='RGB',
+        mode='RGBA',
         size=(mdx * sw, mdy * sh),
         color=bgcolor,
     )
@@ -275,7 +314,7 @@ def cmd_render(args):
                 if y == sh: break
 
                 if 'water.png' in (tile.get('texture1'), tile.get('texture2')):
-                    color = (43, 144, 217)
+                    color = (43, 144, 217, 255)
                 else:
                     cc = tile['minimapColor'] if 'minimapColor' in tile else tile['color']
                     mod = 0.7 if tile.get('shadow', False) else 1.0
@@ -283,6 +322,7 @@ def cmd_render(args):
                         int(cc['r'] * mod),
                         int(cc['g'] * mod),
                         int(cc['b'] * mod),
+                        255,
                     )
                 xx = (wx * sw) + x
                 yy = (wy * sh) + y

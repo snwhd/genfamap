@@ -287,3 +287,11 @@ def backup():
     cmd = ['cp', 'map.db', f'backups/{datetime.now()}.db']
     subprocess.check_output(cmd)
 
+
+def convert_coord_system():
+
+    with Database() as db:
+        db.execute('UPDATE monsters SET x=x*128, y=y*128+256')
+        db.execute('UPDATE locations SET x=x*128, tox=tox*128, y=y*128+256, toy=toy*128+256')
+        db.execute('UPDATE icons SET x=x*128, y=y*128+256')
+
