@@ -147,8 +147,8 @@ window.onload = (event) => {
                     let lgroup = groups[groupname];
                     lgroup.eachLayer(function (layer) {
                         if (layer instanceof L.Marker) {
-                            let llat = layer.getLatLng().lat;
-                            let llng = layer.getLatLng().lng;
+                            let llat = layer.getLatLng().lat - 0.5;
+                            let llng = layer.getLatLng().lng - 0.5;
                             if (llat == oY && llng == oX) {
                                 ignoreAnchorClick = true;
                                 layer.fire('click');
@@ -219,8 +219,8 @@ window.onload = (event) => {
             let lgroup = groups[groupname];
             lgroup.eachLayer(function (layer) {
                 if (layer instanceof L.Marker) {
-                    let llat = layer.getLatLng().lat;
-                    let llng = layer.getLatLng().lng;
+                    let llat = layer.getLatLng().lat - 0.5;
+                    let llng = layer.getLatLng().lng - 0.5;
                     if (llat == oY && llng == oX) {
                         markers.push(layer);
                     }
@@ -290,6 +290,13 @@ window.onload = (event) => {
         
     function setupRouteButton() {
         document.getElementById('routebutton').onclick = toggleRoute;
+    }
+
+    function genToLeafOffset(pos) {
+        return [
+            genToLeafY(pos[0]) + 0.5,
+            genToLeafX(pos[1]) + 0.5
+        ];
     }
 
     function genToLeaf(pos) {
@@ -367,12 +374,14 @@ window.onload = (event) => {
 
     function markerClicked(e) {
         let pos = e.target.getLatLng();
-        clickedX = leafToGenX(pos.lng);
-        clickedY = leafToGenY(pos.lat);
+        let lat = pos.lat - 0.5;
+        let lng = pos.lng - 0.5;
+        clickedX = leafToGenX(lng);
+        clickedY = leafToGenY(lat);
         if (routing) {
-            addToRoute(pos.lat, pos.lng);
+            addToRoute(lat, lng);
         } else {
-            setAnchorForView(pos.lat, pos.lng, map.getZoom());
+            setAnchorForView(lat, lng, map.getZoom());
             if (editing) {
                 let type = e.target.options.markerType;
                 selectEditorPane("edit_" + type);
@@ -414,7 +423,7 @@ window.onload = (event) => {
                     if (response.status == 'okay') {
                         let text = data.get('name') + " (level " + data.get('level') + ")";
                         let pos = [data.get('y'), data.get('x')];
-                        new CustomMarker(genToLeaf(pos), {
+                        new CustomMarker(genToLeafOffset(pos), {
                             markerType: 'monster'
                         }).bindPopup(text)
                           .on('click', markerClicked)
@@ -464,7 +473,7 @@ window.onload = (event) => {
                         let y = data.get('toy');
                         let popup = '<a href="/' + m + '#' + x + '_' + y + '">' + data.get('name') + '</a>';
                         let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
-                        new CustomMarker(genToLeaf(pos), {
+                        new CustomMarker(genToLeafOffset(pos), {
                             icon: purpleIcon,
                             markerType: 'location'
                         }).bindPopup(popup)
@@ -511,7 +520,7 @@ window.onload = (event) => {
                     if (response.status == 'okay') {
                         let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
                         let group = iconGroups[response.group];
-                        new CustomMarker(genToLeaf(pos), {
+                        new CustomMarker(genToLeafOffset(pos), {
                             icon: iconIcons[data.get('icon')],
                             markerType: 'icon',
                         }).on('click', markerClicked)
@@ -670,7 +679,7 @@ window.onload = (event) => {
                 opts.icon = redIcon;
             }
             let text = monster.name + " (level " + monster.level + ")";
-            new CustomMarker(genToLeaf(monster.position), opts)
+            new CustomMarker(genToLeafOffset(monster.position), opts)
                 .bindPopup(text)
                 .on('click', markerClicked)
                 .addTo(monsterGroup);
@@ -688,7 +697,7 @@ window.onload = (event) => {
                 m = '';
             }
             let popup = '<a href="/' + m + '#' + x + '_' + y + '">' + loc.name + '</a>';
-            new CustomMarker(genToLeaf(loc.position), {
+            new CustomMarker(genToLeafOffset(loc.position), {
                 icon: purpleIcon,
                 markerType: 'location'
             }).bindPopup(popup)
@@ -701,7 +710,7 @@ window.onload = (event) => {
         // draw a maker for each monster
         if (icons[mapName]) {
             for (var icon of icons[mapName]) {
-                new CustomMarker(genToLeaf(icon.position), {
+                new CustomMarker(genToLeafOffset(icon.position), {
                     icon: iconIcons[icon.icon],
                     markerType: 'icon'
                 }).on('click', markerClicked)
