@@ -197,17 +197,23 @@ window.onload = (event) => {
             } else {
                 // otherwise a single point
                 setAnchorForView(lat, lng, map.getZoom());
-                clickedX = lng;
-                clickedY = lat;
+                clickedX = leafToGenX(lng);
+                clickedY = leafToGenY(lat);
                 console.log(lat, lng);
                 if (editing) {
-                    showEditorPointMenu();
+                    if (movingElement) {
+                        finishMoving();
+                    } else {
+                        showEditorPointMenu();
+                    }
                 }
             }
         });
     }
 
     function getMarkersAt(oX, oY) {
+        oX = genToLeafX(oX);
+        oY = genToLeafY(oY);
         let markers = [];
         for (groupname in groups) {
             let lgroup = groups[groupname];
@@ -295,7 +301,7 @@ window.onload = (event) => {
     }
 
     function genToLeafY(y) {
-        return ((y1 + y0) - y) + 1;
+        return ((y1 + y0) - y) - 1;
     }
 
     function genToLeafX(x) {
@@ -311,13 +317,58 @@ window.onload = (event) => {
     }
 
     //
+    // moving things
+    //
+
+    let movingElement = false;
+    let movingAPI = null;
+    
+    function beginMoving(api_name) {
+        movingElement = true;
+        movingAPI = api_name;
+    }
+
+    function finishMoving() {
+        if (!movingElement || movingAPI == null) {
+            movingElement = false;
+            return;
+        }
+        movingElement = false;
+
+        console.log(movingAPI + "_map");
+        document.getElementById(movingAPI + "_map").value = mapName;
+        document.getElementById(movingAPI + "_tox").value = "" + clickedX;
+        document.getElementById(movingAPI + "_toy").value = "" + clickedY;
+        let data = new FormData(document.getElementById(movingAPI + "_form"));
+        apiWrite(movingAPI, data, function (response) {
+            if (response.status == 'okay') {
+                let pos = [parseFloat(data.get('x')), parseFloat(data.get('y'))];
+                deleteMarkersAt(pos[0], pos[1]);
+                if (response.icons) {
+                    addIcons(response.icons);
+                }
+                if (response.monsters) {
+                    console.log('adding monsters: ');
+                    console.log(response.monsters);
+                    addMonsters(response.monsters);
+                }
+                if (response.locations) {
+                    addLocations(response.locations);
+                }
+                movingAPI = null;
+            }
+        });
+        selectEditorPane('');
+    }
+
+    //
     // handle anchor update / route when clicking on a marker
     //
 
     function markerClicked(e) {
         let pos = e.target.getLatLng();
-        clickedX = pos.lng;
-        clickedY = pos.lat;
+        clickedX = leafToGenX(pos.lng);
+        clickedY = leafToGenY(pos.lat);
         if (routing) {
             addToRoute(pos.lat, pos.lng);
         } else {
@@ -388,6 +439,14 @@ window.onload = (event) => {
                 return false;
             }
 
+            // move monsters
+            let move_monster = document.getElementById("move_monster_button");
+            move_monster.onclick = function (e) {
+                beginMoving("move_monster");
+                e.preventDefault();
+                return false;
+            }
+
             // add locations
             let add_location_button = document.getElementById("pick_add_location");
             add_location_button.onclick = function(e) {
@@ -430,6 +489,14 @@ window.onload = (event) => {
                 return false;
             }
 
+            // move locations
+            let move_location = document.getElementById("move_location_button");
+            move_location.onclick = function (e) {
+                beginMoving("move_location");
+                e.preventDefault();
+                return false;
+            }
+
             // add icons
             let add_icon_button = document.getElementById("pick_add_icon");
             add_icon_button.onclick = function(e) {
@@ -443,10 +510,7 @@ window.onload = (event) => {
                     if (response.status == 'okay') {
                         let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
                         let group = iconGroups[response.group];
-                        console.log(iconGroups);
-                        console.log(response.group);
-                        console.log(group);
-                        new CustomMarker(pos, {
+                        new CustomMarker(genToLeaf(pos), {
                             icon: iconIcons[data.get('icon')],
                             markerType: 'icon',
                         }).on('click', markerClicked)
@@ -468,6 +532,14 @@ window.onload = (event) => {
                         deleteMarkersAt(parseFloat(data.get('x')), parseFloat(data.get('y')));
                     }
                 });
+                e.preventDefault();
+                return false;
+            }
+
+            // move icons
+            let move_icon = document.getElementById("move_icon_button");
+            move_icon.onclick = function (e) {
+                beginMoving("move_icon");
                 e.preventDefault();
                 return false;
             }
@@ -503,7 +575,9 @@ window.onload = (event) => {
         }
 
         let current = document.getElementById(selected);
-        current.style.display = "inherit";
+        if (current != null) {
+            current.style.display = "inherit";
+        }
 
         switch (selected) {
             case "add_monster":
@@ -521,6 +595,12 @@ window.onload = (event) => {
                 e.value = "" + clickedY;
                 e = document.getElementById("delete_monster_map");
                 e.value = mapName;
+
+                // move
+                e = document.getElementById("move_monster_x");
+                e.value = "" + clickedX;
+                e = document.getElementById("move_monster_y");
+                e.value = "" + clickedY;
                 break;
             case "add_location":
                 var e = document.getElementById("add_location_x");
@@ -537,6 +617,12 @@ window.onload = (event) => {
                 e.value = "" + clickedY;
                 e = document.getElementById("delete_location_map");
                 e.value = mapName;
+
+                // move
+                e = document.getElementById("move_location_x");
+                e.value = "" + clickedX;
+                e = document.getElementById("move_location_y");
+                e.value = "" + clickedY;
                 break;
             case "add_icon":
                 var e = document.getElementById("add_icon_x");
@@ -553,6 +639,12 @@ window.onload = (event) => {
                 e.value = "" + clickedY;
                 e = document.getElementById("delete_icon_map");
                 e.value = mapName;
+
+                // move
+                e = document.getElementById("move_icon_x");
+                e.value = "" + clickedX;
+                e = document.getElementById("move_icon_y");
+                e.value = "" + clickedY;
                 break;
         }
     }

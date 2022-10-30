@@ -349,6 +349,38 @@ class WebServer(object):
                         db.delete_monster(*params)
                         db.meta_set_modified(True)
 
+                elif action == 'move_monster':
+                    check_editor()
+
+                    map_name = request.form.get('map')
+                    x = request.form.get('x')
+                    y = request.form.get('y')
+                    tox = request.form.get('tox')
+                    toy = request.form.get('toy')
+                    if None in (map_name, x, y, tox, toy):
+                        raise ValueError(f'missing parameter')
+
+                    x = float(x)
+                    y = float(y)
+                    tox = float(tox)
+                    toy = float(toy)
+                    params = (tox, toy, x, y, map_name)
+                    log = f'{action} : {params}'
+                    with Database() as db:
+                        db.log(username, log)
+                        monster = db.move_monster(*params)
+                        if monster is None:
+                            raise ValueError('no monster at position')
+                        response['monsters'] = {
+                            map_name: [{
+                                'name': monster[4],
+                                'level': monster[5],
+                                'position': [ toy, tox ],
+                                'boss': bool(monster[6]),
+                            }]
+                        }
+                        db.meta_set_modified(True)
+
                 elif action == 'add_location':
                     check_editor()
 
@@ -390,6 +422,40 @@ class WebServer(object):
                         db.delete_location(*params)
                         db.meta_set_modified(True)
 
+                elif action == 'move_location':
+                    check_editor()
+
+                    map_name = request.form.get('map')
+                    x = request.form.get('x')
+                    y = request.form.get('y')
+                    tox = request.form.get('tox')
+                    toy = request.form.get('toy')
+                    if None in (map_name, x, y, tox, toy):
+                        raise ValueError(f'missing parameter')
+
+                    x = float(x)
+                    y = float(y)
+                    tox = float(tox)
+                    toy = float(toy)
+                    params = (tox, toy, x, y, map_name)
+                    log = f'{action} : {params}'
+                    with Database() as db:
+                        db.log(username, log)
+                        location = db.move_location(*params)
+                        if location is None:
+                            raise ValueError('no location at position')
+                        response['locations'] = {
+                            map_name: [{
+                                'name': location[4],
+                                'position': [ toy, tox ],
+                                'destination': {
+                                    'map': location[5],
+                                    'position': [location[6], location[7]],
+                                }
+                            }]
+                        }
+                        db.meta_set_modified(True)
+
                 elif action == 'add_icon':
                     check_editor()
 
@@ -427,6 +493,38 @@ class WebServer(object):
                     with Database() as db:
                         db.log(username, log)
                         db.delete_icon(*params)
+                        db.meta_set_modified(True)
+
+                elif action == 'move_icon':
+                    check_editor()
+
+                    map_name = request.form.get('map')
+                    x = request.form.get('x')
+                    y = request.form.get('y')
+                    tox = request.form.get('tox')
+                    toy = request.form.get('toy')
+                    if None in (map_name, x, y, tox, toy):
+                        raise ValueError(f'missing parameter')
+
+                    x = float(x)
+                    y = float(y)
+                    tox = float(tox)
+                    toy = float(toy)
+                    params = (tox, toy, x, y, map_name)
+                    log = f'{action} : {params}'
+                    with Database() as db:
+                        db.log(username, log)
+                        icon = db.move_icon(*params)
+                        if icon is None:
+                            raise ValueError('no icon at position')
+                        response['icons'] = {
+                            map_name: [{
+                                'icon': icon[4],
+                                'group': icon[5],
+                                'name': icon[6],
+                                'position': [ toy, tox ],
+                            }]
+                        }
                         db.meta_set_modified(True)
 
                 elif action == 'ban':

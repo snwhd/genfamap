@@ -201,6 +201,66 @@ class Database(object):
         params = (x, y, map_id)
         self.execute('DELETE FROM monsters WHERE x=? AND y=? AND map=?', params)
 
+    def move_monster(
+        self,
+        tox: float,
+        toy: float,
+        x: float,
+        y: float,
+        map_name: str,
+    ) -> None:
+        rows = self.get_map(map_name)
+        if len(rows) != 1:
+            raise ValueError('invalid map')
+        map_id = rows[0][0]
+        params = (tox, toy, x, y, map_id)
+        mrows = self.select('SELECT * FROM monsters WHERE x=? AND y=? AND map=?', params[2:])
+        if len(mrows) == 1:
+            monster = mrows[0]
+            self.execute('UPDATE monsters SET x=?, y=? WHERE x=? AND y=? AND map=?', params)
+            return monster
+        return None
+
+    def move_location(
+        self,
+        tox: float,
+        toy: float,
+        x: float,
+        y: float,
+        map_name: str,
+    ) -> None:
+        rows = self.get_map(map_name)
+        if len(rows) != 1:
+            raise ValueError('invalid map')
+        map_id = rows[0][0]
+        params = (tox, toy, x, y, map_id)
+        mrows = self.select('SELECT * FROM locations WHERE x=? AND y=? AND map=?', params[2:])
+        if len(mrows) == 1:
+            location = mrows[0]
+            self.execute('UPDATE locations SET x=?, y=? WHERE x=? AND y=? AND map=?', params)
+            return location
+        return None
+
+    def move_icon(
+        self,
+        tox: float,
+        toy: float,
+        x: float,
+        y: float,
+        map_name: str,
+    ) -> None:
+        rows = self.get_map(map_name)
+        if len(rows) != 1:
+            raise ValueError('invalid map')
+        map_id = rows[0][0]
+        params = (tox, toy, x, y, map_id)
+        mrows = self.select('SELECT * FROM icons WHERE x=? AND y=? AND map=?', params[2:])
+        if len(mrows) == 1:
+            icon = mrows[0]
+            self.execute('UPDATE icons SET x=?, y=? WHERE x=? AND y=? AND map=?', params)
+            return icon
+        return None
+
     def log(
         self,
         actor: str,
