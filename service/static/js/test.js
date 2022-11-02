@@ -44,14 +44,18 @@ window.onload = (event) => {
 
     const imageUrls = {
         'world':   '/static/img/world.png',
+        'world1':   '/static/img/world1.png',
+        'world2':   '/static/img/world2.png',
         'fae':     '/static/img/fae.png',
         'dungeon': '/static/img/dungeon.png',
     };
 
     const dimensions = {
-        'world': [ -2, -1, 3, 3 ],
-        'fae': [-1, 0, 1, 1],
-        'dungeon': [-2, -1, 3, 3]
+        'world':   [ -2, -1, 3, 3 ],
+        'world1':  [ -2, -1, 2, 2 ],
+        'world2':  [  0, -1, 2, 0 ],
+        'fae':     [ -1,  0, 1, 1 ],
+        'dungeon': [ -2, -1, 3, 3 ]
     };
 
     //
@@ -84,8 +88,25 @@ window.onload = (event) => {
                 return 'fae';
             case 'dungeon':
                 return 'dungeon';
+            case '1':
+                return 'world1';
+            case '2':
+                return 'world2';
             default:
                 return 'world';
+        }
+    }
+
+    function mapToUrlName(map_name) {
+        switch (map_name) {
+            case 'world':
+                return '';
+            case 'world1':
+                return '1';
+            case 'world2':
+                return '2';
+            default:
+                return map_name;
         }
     }
 
@@ -468,10 +489,11 @@ window.onload = (event) => {
                 apiWrite("add_location", data, function (response) {
                     console.log(response);
                     if (response.status == 'okay') {
-                        let m = data.get('tomap');
+                        let m = mapToUrlName(data.get('tomap'));
                         let x = data.get('tox');
                         let y = data.get('toy');
-                        let popup = '<a href="/' + m + '#' + x + '_' + y + '">' + data.get('name') + '</a>';
+                        let name = mapToUrlName(data.get('name'));
+                        let popup = '<a href="/' + m + '#' + x + '_' + y + '">' + name + '</a>';
                         let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
                         new CustomMarker(genToLeafOffset(pos), {
                             icon: purpleIcon,
@@ -670,7 +692,9 @@ window.onload = (event) => {
     });
 
     function addMonsters(monsters) {
-        // draw a maker for each monster
+        if (!monsters[mapName]) {
+            return;
+        }
         for (var monster of monsters[mapName]) {
             let opts = {
                 markerType: 'monster'
@@ -687,16 +711,14 @@ window.onload = (event) => {
     }
 
     function addLocations(locations) {
-        // draw a maker for each monster
+        if (!locations[mapName]) {
+            return;
+        }
         for (var loc of locations[mapName]) {
-            let m = loc.destination.map;
+            let m = mapToUrlName(loc.destination.map);
             let x = loc.destination.position[0];
             let y = loc.destination.position[1];
-            if (m == 'world') {
-                // world is hardcoded to the root path
-                m = '';
-            }
-            let popup = '<a href="/' + m + '#' + x + '_' + y + '">' + loc.name + '</a>';
+            let popup = '<a href="/' + m + '#' + x + '_' + y + '">' + mapToUrlName(loc.name) + '</a>';
             new CustomMarker(genToLeafOffset(loc.position), {
                 icon: purpleIcon,
                 markerType: 'location'
@@ -707,7 +729,9 @@ window.onload = (event) => {
     }
 
     function addIcons(icons) {
-        // draw a maker for each monster
+        if (!icons[mapName]) {
+            return;
+        }
         if (icons[mapName]) {
             for (var icon of icons[mapName]) {
                 new CustomMarker(genToLeafOffset(icon.position), {
@@ -741,11 +765,13 @@ window.onload = (event) => {
         switch (mapName) {
             case 'world':
                 break;
+            case 'fae':
+                break;
+            case 'world1':
+            case 'world2':
             case 'dungeon':
                 document.body.style.backgroundColor = 'black';
                 document.getElementById('map').style.backgroundColor = 'black';
-                break;
-            case 'fae':
                 break;
         }
     }

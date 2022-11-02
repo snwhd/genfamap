@@ -39,16 +39,18 @@
 	<div class="footer">
 		<a href="#credits">Contributors</a>
 		|
-		Sponsored by <a onclick="retro()" href="https://www.twitch.tv/evanmmo">EvanMMO</a>
+		Sponsored by <a onclick="retro(); return false;" href="https://www.twitch.tv/evanmmo">EvanMMO</a>
 	</div>
 	<div class="footer" style="right:1em; left:auto">
 		<a href="https://genfamap.com/">World</a>
+		<a href="https://genfamap.com/" >[0]</a>
+		<a href="https://genfamap.com/1">[1]</a>
+		<a href="https://genfamap.com/2">[2]</a>
 		|
 		<a href="https://genfamap.com/fae">Fae</a>
 		|
 		<a href="https://genfamap.com/dungeon">Dungeon</a>
-		|
-		<button id="routebutton">Start Route</button>
+		<button style="display:none" id="routebutton">Start Route</button>
 		{% if admin %}
 		|
 		<button id="editbutton">Start Edit</button>
@@ -78,6 +80,8 @@
 				<label>map</label>
 				<select name="map" id="add_monster_map">
 					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
 					<option value="fae">fae</option>
 					<option value="dungeon">dungeon</option>
 				</select>
@@ -98,6 +102,8 @@
 				<label>map</label>
 				<select name="map" id="delete_monster_map">
 					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
 					<option value="fae">fae</option>
 					<option value="dungeon">dungeon</option>
 				</select>
@@ -113,6 +119,8 @@
 			<form style="display:none" id="move_monster_form">
 				<select name="map" id="move_monster_map">
 					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
 					<option value="fae">fae</option>
 					<option value="dungeon">dungeon</option>
 				</select>
@@ -134,6 +142,8 @@
 				<label>map</label>
 				<select name="map" id="add_location_map">
 					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
 					<option value="fae">fae</option>
 					<option value="dungeon">dungeon</option>
 				</select>
@@ -147,6 +157,8 @@
 				<label>destination map</label>
 				<select name="tomap" id="add_location_dest_map">
 					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
 					<option value="fae">fae</option>
 					<option value="dungeon">dungeon</option>
 				</select>
@@ -167,6 +179,8 @@
 				<label>map</label>
 				<select name="map" id="delete_location_map">
 					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
 					<option value="fae">fae</option>
 					<option value="dungeon">dungeon</option>
 				</select>
@@ -182,6 +196,8 @@
 			<form style="display:none" id="move_location_form">
 				<select name="map" id="move_location_map">
 					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
 					<option value="fae">fae</option>
 					<option value="dungeon">dungeon</option>
 				</select>
@@ -221,6 +237,8 @@
 				<label>map</label>
 				<select name="map" id="add_icon_map">
 					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
 					<option value="fae">fae</option>
 					<option value="dungeon">dungeon</option>
 				</select>
@@ -241,6 +259,8 @@
 				<label>map</label>
 				<select name="map" id="delete_icon_map">
 					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
 					<option value="fae">fae</option>
 					<option value="dungeon">dungeon</option>
 				</select>
@@ -256,6 +276,8 @@
 			<form style="display:none" id="move_icon_form">
 				<select name="map" id="move_icon_map">
 					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
 					<option value="fae">fae</option>
 					<option value="dungeon">dungeon</option>
 				</select>

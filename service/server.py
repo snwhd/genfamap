@@ -75,6 +75,8 @@ class WebServer(object):
         self.jinja_env = Environment(loader=FileSystemLoader(str(path.absolute())), autoescape=True)
         self.urlmap = Map([
             Rule('/', endpoint='world'),
+            Rule('/1', endpoint='world1'),
+            Rule('/2', endpoint='world2'),
             Rule('/fae', endpoint='fae'),
             Rule('/dungeon', endpoint='dungeon'),
             Rule('/confirm', endpoint='confirm'),
@@ -169,6 +171,12 @@ class WebServer(object):
     def handle_world(self, request):
         return self.return_map(request, 'world')
 
+    def handle_world1(self, request):
+        return self.return_map(request, 'world1')
+
+    def handle_world2(self, request):
+        return self.return_map(request, 'world2')
+
     def handle_fae(self, request):
         return self.return_map(request, 'fae')
 
@@ -184,7 +192,6 @@ class WebServer(object):
             Permission.EDITOR.value,
         )
         is_test = request.args.get('test') is not None
-        print(is_test)
         return self.render('map.html', admin=is_admin, is_test=is_test)
 
     def handle_confirm(self, request):

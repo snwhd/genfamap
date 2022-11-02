@@ -76,6 +76,7 @@ body {
 .footer a {
 	text-decoration: none;
 	font-weight: bold;
+	color: black;
 }
 
 .leaflet-overlay-pane {
