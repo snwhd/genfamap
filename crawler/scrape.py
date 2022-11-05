@@ -16,7 +16,7 @@ import os
 
 
 CACHE_DIR = 'files'
-CACHE_VERSION = '0.103'
+CACHE_VERSION = '0.104'
 STATIC_ENDPOINT = f'https://genfanad-static.s3.us-east-2.amazonaws.com/versioned/{CACHE_VERSION}/data_client'
 IMAGES_DIR = 'img'
 HTML_DIR = 'html'
@@ -42,6 +42,9 @@ KNOWN_SEGMENTS = {
         ( 3,-1),
         ( 3, 0),
         ( 3, 1),
+    ],
+    'world2': [
+        (2, -1),
     ],
     'dungeon': [
         (-1, 1),
@@ -292,7 +295,7 @@ def cmd_render(args):
     print(f'segment size: {sw}x{sh}')
 
     bgcolor = (255, 255, 255, 0)
-    if region == 'dungeon':
+    if region in ('dungeon', 'world1'):
         bgcolor = (0, 0, 0, 255)
     img = Image.new(
         mode='RGBA',
@@ -429,6 +432,10 @@ def cmd_render(args):
 def cmd_icons(args):
     regions = args.regions
 
+    zones = args.zones or []
+    assert len(zones) % 2 == 0
+    zones = [zones[i:i+2] for i in range(0, len(zones), 2)]
+
     results = {}
 
     for region in regions:
@@ -437,11 +444,23 @@ def cmd_icons(args):
         pathregion = region if region != 'fae' else 'fairy'
         cache_path = os.path.join(CACHE_DIR, CACHE_VERSION, pathregion)
         files = os.listdir(cache_path)
+
         map_files = {}
-        for filename in files:
-            if filename.endswith('_combined.json'):
-                with open(os.path.join(cache_path, filename)) as f:
+        if len(zones) > 0:
+            # only selected segments
+            for x, y in zones:
+                filename = f'{x}_{y}_combined.json'
+                filepath = os.path.join(cache_path, filename)
+                if not os.path.exists(filepath):
+                    continue
+                with open(filepath) as f:
                     map_files[filename] = json.load(f)
+        else:
+            # all segments
+            for filename in files:
+                if filename.endswith('_combined.json'):
+                    with open(os.path.join(cache_path, filename)) as f:
+                        map_files[filename] = json.load(f)
 
         mminx = 100
         mmaxx = 0
@@ -577,6 +596,7 @@ if __name__ == '__main__':
 
     cmd = parsers.add_parser('icons')
     cmd.add_argument('regions', type=str, nargs='+')
+    cmd.add_argument('--zones', type=int, nargs='+')
     cmd.set_defaults(func=cmd_icons)
 
     args = parser.parse_args()

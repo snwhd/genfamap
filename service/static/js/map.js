@@ -443,7 +443,7 @@ window.onload = (event) => {
                     console.log(response);
                     if (response.status == 'okay') {
                         let text = data.get('name') + " (level " + data.get('level') + ")";
-                        let pos = [data.get('y'), data.get('x')];
+                        let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
                         new CustomMarker(genToLeafOffset(pos), {
                             markerType: 'monster'
                         }).bindPopup(text)
