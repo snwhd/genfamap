@@ -151,6 +151,7 @@ class WebServer(object):
                 SESSION_COOKIE,
                 request.session.serialize(),
                 httponly=True,
+                max_age=31536000,
             )
         return response(environ, start_response)
 
