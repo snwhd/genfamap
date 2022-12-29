@@ -150,3 +150,10 @@ svg.leaflet-zoom-animated {
 .modal-window div:not(:last-of-type) {
   margin-bottom: 15px;
 }
+
+.currentLocationMarker {
+	border-radius: 50%;
+	background-color: deepskyblue;
+	width: 150px;
+	height: 150px;
+}

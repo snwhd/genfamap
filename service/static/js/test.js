@@ -124,8 +124,8 @@ window.onload = (event) => {
     // anchor to locations on map
     //
 
-    let currentAnchorX = -100;
-    let currentAnchorY = -100;
+    let currentAnchorX = null; // -100;
+    let currentAnchorY = null; // -100;
     let currentAnchorZoom = -100;
     let ignoreAnchorClick = false;
 
@@ -162,6 +162,12 @@ window.onload = (event) => {
                 zoom = minZoom + (maxZoom - minZoom) * zoom;
                 map.setView([oY, oX], zoom);
 
+                currentAnchorX = oX;
+                currentAnchorY = oY;
+
+                // change position of our location
+                updateCurrentLocation();
+
                 // now check every marker group, and each marker
                 // to see if we have panned to one. If so, auto-click it
                 for (groupname in groups) {
@@ -173,6 +179,10 @@ window.onload = (event) => {
                             if (llat == oY && llng == oX) {
                                 ignoreAnchorClick = true;
                                 layer.fire('click');
+                                // if we clicked an icon, hide the position marker
+                                console.log('clicked icon, removing marker');
+                                removeCurrentLocationMarker();
+                                return;
                             }
                         }
                     });
@@ -182,7 +192,7 @@ window.onload = (event) => {
     }
 
     // change anchor to current view
-    function setAnchorForView(lat, lon, zoom) {
+    function setAnchorForView(lat, lon, zoom, showLocation) {
         if (ignoreAnchorClick) {
             ignoreAnchorClick = false;
             return;
@@ -195,6 +205,11 @@ window.onload = (event) => {
         currentAnchorY = lat;
         currentAnchorZoom = zoom;
         window.location.hash = '#' + leafToGenX(lon) + '_' + leafToGenY(lat) + '_' + zoom;
+        if (showLocation) {
+            updateCurrentLocation();
+        } else {
+            removeCurrentLocationMarker();
+        }
     }
 
     function setupAnchors() {
@@ -217,7 +232,7 @@ window.onload = (event) => {
                 addToRoute(lat, lng);
             } else {
                 // otherwise a single point
-                setAnchorForView(lat, lng, map.getZoom());
+                setAnchorForView(lat, lng, map.getZoom(), true);
                 clickedX = leafToGenX(lng);
                 clickedY = leafToGenY(lat);
                 console.log(lat, lng);
@@ -363,7 +378,7 @@ window.onload = (event) => {
         }
         movingElement = false;
 
-        console.log(movingAPI + "_map");
+        // console.log(movingAPI + "_map");
         document.getElementById(movingAPI + "_map").value = mapName;
         document.getElementById(movingAPI + "_tox").value = "" + clickedX;
         document.getElementById(movingAPI + "_toy").value = "" + clickedY;
@@ -376,8 +391,6 @@ window.onload = (event) => {
                     addIcons(response.icons);
                 }
                 if (response.monsters) {
-                    console.log('adding monsters: ');
-                    console.log(response.monsters);
                     addMonsters(response.monsters);
                 }
                 if (response.locations) {
@@ -402,7 +415,7 @@ window.onload = (event) => {
         if (routing) {
             addToRoute(lat, lng);
         } else {
-            setAnchorForView(lat, lng, map.getZoom());
+            setAnchorForView(lat, lng, map.getZoom(), false);
             if (editing) {
                 let type = e.target.options.markerType;
                 selectEditorPane("edit_" + type);
@@ -411,7 +424,58 @@ window.onload = (event) => {
     }
 
     //
+    // location marker
+    //
+
+    let currentLocationIcon = L.divIcon({
+        className: 'currentLocationMarker',
+    });
+    let currentLocationMarker = null;
+    let enableLocationMarker = new URLSearchParams(window.location.search).has('location');
+
+    function getCurrentLocationMarker() {
+        if (!enableLocationMarker) {
+            return;
+        }
+
+        if (currentLocationMarker == null) {
+            currentLocationMarker = L.marker([0, 0], {
+                icon: currentLocationIcon,
+            });
+            console.log('created marker');
+            currentLocationMarker.addTo(map);
+        }
+        return currentLocationMarker;
+    }
+
+    function removeCurrentLocationMarker() {
+        if (!enableLocationMarker) {
+            return;
+        }
+
+        if (currentLocationMarker != null) {
+            currentLocationMarker.remove();
+            currentLocationMarker = null;
+        }
+    }
+
+    function updateCurrentLocation() {
+        if (!enableLocationMarker) {
+            return;
+        }
+
+        if (currentAnchorX != null && currentAnchorY != null) {
+            console.log([currentAnchorY, currentAnchorX]);
+            var marker = getCurrentLocationMarker();
+            marker.setLatLng([currentAnchorY, currentAnchorX]);
+        } else {
+            removeCurrentLocationMarker();
+        }
+    }
+
+    //
     // admin tools
+    //
 
     let isEditor = false;
     let editing = false;
@@ -440,7 +504,7 @@ window.onload = (event) => {
             add_monster_submit.onclick = function(e) {
                 let data = new FormData(document.getElementById("add_monster_form"));
                 apiWrite("add_monster", data, function (response) {
-                    console.log(response);
+                    // console.log(response);
                     if (response.status == 'okay') {
                         let text = data.get('name') + " (level " + data.get('level') + ")";
                         let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
@@ -460,7 +524,7 @@ window.onload = (event) => {
             delete_monster.onclick = function (e) {
                 let data = new FormData(document.getElementById("delete_monster_form"));
                 apiWrite("delete_monster", data, function (response) {
-                    console.log(response);
+                    // console.log(response);
                     if (response.status == 'okay') {
                         let pos = [parseFloat(data.get('x')), parseFloat(data.get('y'))];
                         deleteMarkersAt(pos[0], pos[1]);
@@ -487,7 +551,7 @@ window.onload = (event) => {
             add_location_submit.onclick = function(e) {
                 let data = new FormData(document.getElementById("add_location_form"));
                 apiWrite("add_location", data, function (response) {
-                    console.log(response);
+                    // console.log(response);
                     if (response.status == 'okay') {
                         let m = mapToUrlName(data.get('tomap'));
                         let x = data.get('tox');
@@ -512,7 +576,7 @@ window.onload = (event) => {
             delete_location.onclick = function (e) {
                 let data = new FormData(document.getElementById("delete_location_form"));
                 apiWrite("delete_location", data, function (response) {
-                    console.log(response);
+                    // console.log(response);
                     if (response.status == 'okay') {
                         deleteMarkersAt(parseFloat(data.get('x')), parseFloat(data.get('y')));
                     }
@@ -538,7 +602,7 @@ window.onload = (event) => {
             add_icon_submit.onclick = function(e) {
                 let data = new FormData(document.getElementById("add_icon_form"));
                 apiWrite("add_icon", data, function (response) {
-                    console.log(response);
+                    // console.log(response);
                     if (response.status == 'okay') {
                         let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
                         let group = iconGroups[response.group];
@@ -559,7 +623,7 @@ window.onload = (event) => {
             delete_icon.onclick = function (e) {
                 let data = new FormData(document.getElementById("delete_icon_form"));
                 apiWrite("delete_icon", data, function (response) {
-                    console.log(response);
+                    // console.log(response);
                     if (response.status == 'okay') {
                         deleteMarkersAt(parseFloat(data.get('x')), parseFloat(data.get('y')));
                     }
@@ -751,7 +815,7 @@ window.onload = (event) => {
                 addIcons(response.data.icons);
                 addLocations(response.data.locations);
             } else {
-                console.log(response);
+                // console.log(response);
             }
         });
     }
@@ -761,7 +825,7 @@ window.onload = (event) => {
     //
 
     function setupMapSpecificStyle(mapName) {
-        console.log('style for ' + mapName);
+        // console.log('style for ' + mapName);
         switch (mapName) {
             case 'world':
                 break;
@@ -787,12 +851,12 @@ window.onload = (event) => {
     map.on('zoomend', function() {
         let imgs = document.getElementsByClassName('leaflet-image-layer');
         if (map.getZoom() < 0.5 * (maxZoom - minZoom)) {
-            console.log('blur');
+            // console.log('blur');
             for (img of imgs) {
                 img.style.imageRendering = 'auto';
             }
         } else {
-            console.log('crisp');
+            // console.log('crisp');
             for (img of imgs) {
                 img.style.imageRendering = 'crisp-edges';
             }
@@ -805,8 +869,8 @@ window.onload = (event) => {
     let y0 = dims[1] * 128;
     let x1 = (dims[2] + 1) * 128;
     let y1 = (dims[3] + 1) * 128;
-    console.log(x1 - x0);
-    console.log(y1 - y0);
+    // console.log(x1 - x0);
+    // console.log(y1 - y0);
     let latLngBounds = L.latLngBounds([[y1, x1], [y0, x0]]);
 
     // calculate min zoom, to be slightly larger than the map
