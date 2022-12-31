@@ -1,0 +1,13 @@
+[Unit]
+Description=Genfamap Server
+After=network.target
+
+[Service]
+User=map
+Group=www-data
+RuntimeDirectory=/home/map/genfamap/service
+WorkingDirectory=/home/map/genfamap/service
+ExecStart=/home/map/genfamap/service/venv/bin/uwsgi --ini service.ini
+
+[Install]
+WantedBy=multi-user.target
