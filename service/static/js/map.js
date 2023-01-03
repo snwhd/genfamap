@@ -319,7 +319,7 @@ window.onload = (event) => {
             window.location.hash = '#route';
         }
 
-        let newPoint = '_' + lon + '_' + leafToGen(lat);
+        let newPoint = '_' + leafToGenX(lon) + '_' + leafToGenY(lat);
         window.location.hash = window.location.hash + newPoint;
     }
         
