@@ -847,6 +847,15 @@ window.onload = (event) => {
                 img.style.imageRendering = 'crisp-edges';
             }
         }
+
+        if (window.opener) {
+            let messageData = {
+                action: 'zoom',
+                zoom: map.getZoom()
+            };
+            window.opener.postMessage(messageData, '*');
+        }
+
     });
 
     // scale each map segment to 1 lat/lon
