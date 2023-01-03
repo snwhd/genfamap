@@ -287,7 +287,7 @@ window.onload = (event) => {
         for (var num of pieces) {
             position.push(parseFloat(num));
             if (position.length == 2) {
-                route.push(genToLeaf(position));
+                route.push(genToLeaf([position[1], position[0]]));
                 position = [];
             }
         }
