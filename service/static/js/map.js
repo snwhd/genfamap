@@ -85,6 +85,7 @@ window.onload = (event) => {
     function getMapName() {
         switch (window.location.pathname.substr(1)) {
             case 'fae':
+            case 'fairy':
                 return 'fae';
             case 'dungeon':
                 return 'dungeon';

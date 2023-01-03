@@ -78,6 +78,7 @@ class WebServer(object):
             Rule('/1', endpoint='world1'),
             Rule('/2', endpoint='world2'),
             Rule('/fae', endpoint='fae'),
+            Rule('/fairy', endpoint='fae'),
             Rule('/dungeon', endpoint='dungeon'),
             Rule('/confirm', endpoint='confirm'),
             Rule('/favicon.ico', endpoint='favicon'),
