@@ -38,7 +38,7 @@ This data should be indexed as `array[y + abs(miny)][x + abs(minx)]` where x and
 y are a point in genfanad, and minx and miny are the minimum x and y values of
 the specific region. So for the main world, that would be
 `array[y + 128][x + 256]` as of version 0.110. The offsets will change if new
-regions are added east or north of the current map.
+regions are added west or north of the current map.
 
 ### imgfetch
 
