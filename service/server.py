@@ -30,12 +30,14 @@ import os
 from exceptionlogger import log_exception
 from database import Database
 
+from secrets import COOKIE_SECRET
+
 SESSION_COOKIE = 's'
-COOKIE_SECRET  = b'o\x1f\r\xf6^\xf9\x14\x0e\xdf\xe5B\xf6\x1cE\xbd\x15'
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
 def make_app():
+    # return server to wsgi
     server = WebServer()
     server.run = SharedDataMiddleware(server.run, {
         '/static': os.path.join(os.path.dirname(__file__), 'static')
