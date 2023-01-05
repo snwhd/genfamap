@@ -61,7 +61,7 @@ class Request(RequestBase):
         return SecureCookie.unserialize(data, COOKIE_SECRET)
 
 
-class WebServer(object):
+class WebServer:
     
     def __enter__(self):
         return self
@@ -76,17 +76,25 @@ class WebServer(object):
         path = Path(os.path.dirname(__file__)) / 'templates'
         self.jinja_env = Environment(loader=FileSystemLoader(str(path.absolute())), autoescape=True)
         self.urlmap = Map([
+
+            # map routes
             Rule('/', endpoint='world'),
             Rule('/1', endpoint='world1'),
             Rule('/2', endpoint='world2'),
             Rule('/fae', endpoint='fae'),
             Rule('/fairy', endpoint='fae'),
             Rule('/dungeon', endpoint='dungeon'),
-            Rule('/confirm', endpoint='confirm'),
-            Rule('/favicon.ico', endpoint='favicon'),
-            Rule('/control_panel', endpoint='control_panel'),
-            Rule('/api/<action>', endpoint='api'),
+
+            # editor/admin routes
             Rule('/gen', endpoint='gen_token'),
+            Rule('/confirm', endpoint='confirm'),
+            Rule('/control_panel', endpoint='control_panel'),
+
+            # api routes
+            Rule('/api/<action>', endpoint='api'),
+
+            # other
+            Rule('/favicon.ico', endpoint='favicon'),
         ])
 
         self.map_info = None
@@ -199,6 +207,7 @@ class WebServer(object):
         return self.render('map.html', admin=is_admin, is_test=is_test)
 
     def handle_confirm(self, request):
+        """ confirm access tokens for editor/admin access """
         token = request.form.get('token')
         if token is not None:
             if self.ratelimit(request, 'confirm', throw=False):
@@ -219,29 +228,38 @@ class WebServer(object):
         return self.render('confirm.html')
 
     def handle_gen_token(self, request):
+        """ generate access tokens for editor/admin access """
+
+        # requester's username
         username = request.session.get('u', None)
         if username is None:
+            # no session -> reject
             return redirect('/')
 
         with Database() as db:
             user_data = db.get_user(username)
             if user_data is None:
+                # user does not exist -> reject
                 return redirect('/')
 
             permission = Permission(user_data[2])
             if permission != Permission.ADMIN:
+                # not an admin session -> reject
                 return self.render('token.html', token='access denied')
 
+            # at this point, request has permission to generate tokens
             perm = request.form.get('permission')
             user = request.form.get('username')
             if perm is None or user is None:
                 return self.render('token.html', token=None)
 
             try:
+                # in case of invalid permission arg
                 p = Permission(perm)
             except Exception as e:
                 return self.render('token.html', token='invalid permission')
 
+            # args are validated, generatea a new admin/editor token
             t = self.generate_token()
             if db.user_exists(user):
                 db.log(username, f'gen_token_for : {user}')
@@ -250,6 +268,7 @@ class WebServer(object):
             else:
                 db.log(username, f'gen_token_new_user : {user}')
                 db.insert_user(user, p.value, t)
+
             return self.render('token.html', token=f'{user}:{p.value} - {t}')
 
     def generate_token(self) -> str:
@@ -263,7 +282,9 @@ class WebServer(object):
         if (p != Permission.ADMIN.value):
             print(f'access denied to control panel: {u} - {p}')
             return redirect('/')
+
         with Database() as db:
+            # load some data to display in control panel
             bans = db.get_bans()
             users = [
                 [
@@ -282,6 +303,11 @@ class WebServer(object):
         return self.render('control_panel.html', users=users, logs=logs)
 
     def handle_api(self, request, action):
+        """ handle all api calls """
+
+        # TODO: this method is overcomplicated, it should be split up into
+        #       routing the request to actual api handlerrs.
+
         response = {}
 
         with Database() as db:
