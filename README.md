@@ -1,6 +1,11 @@
 # Genfamap
 
-A map for genfanad.com, found on genfamap.com
+A map for https://genfanad.com, found on https://genfamap.com
+
+Genfamap.com query parameters
+- `?location=true` - display player location marker
+- `?test=true` - use `test.js` client, should be identical to standard client
+unless someone is developing in prod.
 
 ## crawler
 
