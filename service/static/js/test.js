@@ -58,31 +58,8 @@ window.onload = (event) => {
         'dungeon': [ -2, -1, 3, 3 ]
     };
 
-    //
-    // util functions
-    //
-
-    function api(action, callback) {
-        let request = new XMLHttpRequest();
-        request.responseType = 'json';
-        request.onload = function() {
-            callback(request.response);
-        }
-        request.open("POST", "/api/" + action, true);
-        request.send();
-    }
-
-    function apiWrite(action, data, callback) {
-        let request = new XMLHttpRequest();
-        request.responseType = 'json';
-        request.onload = function() {
-            callback(request.response);
-        }
-        request.open("POST", "/api/" + action, true);
-        request.send(data);
-    }
-
     function getMapName() {
+        // get internal map name from url path
         switch (window.location.pathname.substr(1)) {
             case 'fae':
             case 'fairy':
@@ -99,6 +76,7 @@ window.onload = (event) => {
     }
 
     function mapToUrlName(map_name) {
+        // get url name from internal map name
         switch (map_name) {
             case 'world':
                 return '';
@@ -111,119 +89,236 @@ window.onload = (event) => {
         }
     }
 
+
     //
-    // some globals
+    // global map state
     //
 
-    let mapName = getMapName();
+    const mapName = getMapName();
     let minZoom = 0; // calculated later
     let maxZoom = 6;
 
-    setupMapSpecificStyle(mapName);
+    // TODO(refac) : move to init
+    initializeMapSpecificStyle(mapName);
 
     //
-    // anchor to locations on map
+    // coordinate handling
     //
 
-    let currentAnchorX = null; // -100;
-    let currentAnchorY = null; // -100;
-    let currentAnchorZoom = -100;
-    let ignoreAnchorClick = false;
+    //
+    // a note about gefamap coordinates:
+    //
+    // Genfanad coordiante system:
+    //   - each tile is 1 unit by 1 unit
+    //   - written as (x, y)
+    //   - (0, 0) is the northeast corner of the zamok map area
+    //   - east  is positive X, west  is negative
+    //   - south is positive Y, north is negative
+    //
+    // Leaflet coordinate system:
+    //   - based on lat/lon values, but projected with Leaflet's simple
+    //     projection to approximate a 1 unit by 1 unit lat/lon overlay of
+    //     the 2D Genfanad map. In this case lat == Y and lon == X.
+    //   - written as (lat, lng) -- equivalent to genfanad (y, x)
+    //   - ** north is positive
+    //
+    // Genfanad coordinates are used in the backend database and all
+    // user-facing features (e.g. url fragment, edit panel).
+    //
+    // Leaflet coordinates are only used when interacting with leaflet.
+    //
+    // Because the coordinate systems differ in Y value, below are some
+    // conversion functions between the two systems.
+    //
+    // TODO: figure out if leaflet can do negative north, to simplify all this
+    //
 
-    // change view to the current anchor
-    function viewToAnchor() {
-        let oX = 0;
-        let oY = 0;
-        let zoom = 0.85;
-        let anchor = window.location.hash.substr(1);
-        if (anchor != '') {
-            let pieces = anchor.split('_');
-            if (pieces.length > 0 && pieces[0] == 'route') {
-                pieces.shift();
-                handleRouteAnchor(pieces);
-                return;
-            }
-
-            if (pieces.length < 2) {
-                // need at least lat/lon
-                return;
-            }
-
-            // the first
-            oX = genToLeafX(parseFloat(pieces[0]));
-            oY = genToLeafY(parseFloat(pieces[1]));
-            if (pieces.length >= 3) {
-                // optional zoom level
-                zoom = parseFloat(pieces[2]);
-            }
-
-            if (oX != currentAnchorX || oY != currentAnchorY || zoom != currentAnchorZoom) {
-                // something has changed, pan and zoom
-                // first convert zoom from 0-1 to min-max
-                zoom = minZoom + (maxZoom - minZoom) * zoom;
-                map.setView([oY, oX], zoom);
-
-                currentAnchorX = oX;
-                currentAnchorY = oY;
-
-                // change position of our location
-                updateCurrentLocation();
-
-                // now check every marker group, and each marker
-                // to see if we have panned to one. If so, auto-click it
-                for (groupname in groups) {
-                    let lgroup = groups[groupname];
-                    lgroup.eachLayer(function (layer) {
-                        if (layer instanceof L.Marker) {
-                            let llat = layer.getLatLng().lat - 0.5;
-                            let llng = layer.getLatLng().lng - 0.5;
-                            if (llat == oY && llng == oX) {
-                                ignoreAnchorClick = true;
-                                layer.fire('click');
-                                // if we clicked an icon, hide the position marker
-                                removeCurrentLocationMarker();
-                                return;
-                            }
-                        }
-                    });
-                }
-            }
-        }
+    function genToLeafOffset(pos) {
+        // genfanad to the center point of a tile in leaflet
+        return [
+            genToLeafY(pos[0]) + 0.5,
+            genToLeafX(pos[1]) + 0.5
+        ];
     }
 
-    // change anchor to current view
-    function setAnchorForView(lat, lon, zoom, showLocation) {
-        if (ignoreAnchorClick) {
-            ignoreAnchorClick = false;
+    function genToLeaf(pos) {
+        // genfanad point to leaflet point (Y, X) -> (Lat, Lon)
+        return [genToLeafY(pos[0]), genToLeafX(pos[1])];
+    }
+
+    function leafToGen(pos) {
+        // leaflet to genfanad point
+        return [leafToGenY(pos[0]), leafToGenX(pos[1])];
+    }
+
+    function genToLeafY(y) {
+        // genfanad Y to leaflet Lat
+        return ((y1 + y0) - y) - 1;
+    }
+
+    function genToLeafX(x) {
+        // genfanad X to leaflet Lng
+        return x;
+    }
+
+    function leafToGenY(y) {
+        // leaflet Lat to genfanad Y
+        return ((y1 + y0) - y) - 1;
+    }
+
+    function leafToGenX(x) {
+        // leaflet Lng to genfanad X
+        return x;
+    }
+
+
+    //
+    // api functions
+    //
+
+    function api(action, callback) {
+        // make a read request to backend api
+        let request = new XMLHttpRequest();
+        request.responseType = 'json';
+        request.onload = function() {
+            callback(request.response);
+        }
+        request.open("POST", "/api/" + action, true);
+        request.send();
+    }
+
+    function apiWrite(action, data, callback) {
+        // make a write request to backend api
+        let request = new XMLHttpRequest();
+        request.responseType = 'json';
+        request.onload = function() {
+            callback(request.response);
+        }
+        request.open("POST", "/api/" + action, true);
+        request.send(data);
+    }
+
+
+    //
+    // fragment handling
+    //
+
+    let currentFragmentPosition = [null, null, null];
+    let ignoreFragmentUpdate = false;
+
+    function updateViewFromFragment() {
+        // change the map view and zoom to the current url fragment
+        let fragment = window.location.hash.substr(1);
+        if (fragment == '') {
             return;
         }
-        zoom = (zoom - minZoom) / (maxZoom - minZoom);
-        zoom = Math.round(zoom * 100) / 100;
-        // set these so that we don't move
-        lat = lat;
-        currentAnchorX = lon;
-        currentAnchorY = lat;
-        currentAnchorZoom = zoom;
-        window.location.hash = '#' + leafToGenX(lon) + '_' + leafToGenY(lat) + '_' + zoom;
-        if (showLocation) {
-            updateCurrentLocation();
-        } else {
-            removeCurrentLocationMarker();
+
+        let pieces = fragment.split('_');
+        if (pieces.length > 0 && pieces[0] == 'route') {
+            pieces.shift();
+            updateRouteFromAnchor(pieces);
+            return;
+        }
+
+        if (pieces.length < 2) {
+            // need at least lat/lon
+            return;
+        }
+
+        // at this point we have either lat_lon or lat_lon_zoom
+        let zoom = 0.85;
+        let oX = genToLeafX(parseFloat(pieces[0]));
+        let oY = genToLeafY(parseFloat(pieces[1]));
+        if (pieces.length >= 3) {
+            // optional zoom level
+            zoom = parseFloat(pieces[2]);
+        }
+
+        // load the most recent fragment view
+        let cX = currentFragmentPosition[0];
+        let cY = currentFragmentPosition[1];
+        let cZ = currentFragmentPosition[2];
+        if (oX == cX && oY == cY && zoom == cZ) {
+            // nothing has changed
+            return;
+        }
+
+        // convert zoom from 0-1 to min-max, and update map
+        zoom = minZoom + (maxZoom - minZoom) * zoom;
+        map.setView([oY, oX], zoom);
+
+        // save new map view
+        currentFragmentPosition = [oX, oY, zoom];
+
+        updatePlayerLocationMarker();
+
+        // this is a bit hacky, but here we check each marker on the map to see
+        // if the fragment points to one (e.g. shared link). If so, we fire a
+        // click event to open the marker.
+        for (groupname in groups) {
+            let lgroup = groups[groupname];
+            lgroup.eachLayer(function (layer) {
+                if (layer instanceof L.Marker) {
+                    let llat = layer.getLatLng().lat - 0.5;
+                    let llng = layer.getLatLng().lng - 0.5;
+                    if (llat == oY && llng == oX) {
+                        ignoreFragmentUpdate = true;
+                        layer.fire('click');
+                        // TODO(genlite): this might not be expected behavior:
+                        //
+                        // (see comment above loop) - if we linked to a marker,
+                        //    hide the current player location marker so it
+                        //    does not interfere with the marker.
+                        removePlayerLocationMarker();
+                        return;
+                    }
+                }
+            });
         }
     }
 
-    function setupAnchors() {
-        // this lets us zoom and pan whenever anchor changes
-        window.onhashchange = viewToAnchor;
-    
-        // zoom to the current one in 1s
-        setTimeout(viewToAnchor, 1000);
+    function updateFragmentFromView(lat, lon, zoom, showLocation) {
+        // save the current map view and zoom to the url fragment
+        // this is called from Marker.onClick
+
+        if (ignoreFragmentUpdate) {
+            // since we auto-click markers when linked to
+            // (see updateViewFromFragment) we don't want to update fragment
+            // again.
+            ignoreFragmentUpdate = false;
+            return;
+        }
+
+        // convert zoom to 0 - 1
+        zoom = (zoom - minZoom) / (maxZoom - minZoom);
+        zoom = Math.round(zoom * 100) / 100;
+
+        // update current fragment position to avoid map scrolling again
+        // in updateViewFromFragment
+        currentFragmentPosition = [lon, lat, zoom];
+
+        window.location.hash = '#' + leafToGenX(lon) + '_' + leafToGenY(lat) + '_' + zoom;
+
+        updatePlayerLocationMarker();
     }
+
+    function initializeFragmentHandling() {
+        // this lets us zoom and pan whenever anchor changes
+        window.onhashchange = updateViewFromFragment;
+
+        // short time delay before updating for the first time if
+        // we opened a link with fragment
+        setTimeout(updateViewFromFragment, 1000);
+    }
+
+    //
+    // click handling
+    //
 
     let clickedX = 0.0;
     let clickedY = 0.0;
 
-    function setupMapClick() {
+    function initializeMapClickHandlers() {
         map.addEventListener('click', (event) => {
             let lat = Math.floor(event.latlng.lat);
             let lng = Math.floor(event.latlng.lng);
@@ -232,9 +327,15 @@ window.onload = (event) => {
                 addToRoute(lat, lng);
             } else {
                 // otherwise a single point
-                setAnchorForView(lat, lng, map.getZoom(), true);
+                updateFragmentFromView(lat, lng, map.getZoom());
                 clickedX = leafToGenX(lng);
                 clickedY = leafToGenY(lat);
+
+                // TODO: remove
+                //console.log([[lng, lat], [clickedX, clickedY]]);
+                console.log([lng, lat]);
+
+
                 if (editing) {
                     if (movingElement) {
                         finishMoving();
@@ -246,7 +347,31 @@ window.onload = (event) => {
         });
     }
 
+    function markerClicked(e) {
+        let pos = e.target.getLatLng();
+        let lat = pos.lat - 0.5;
+        let lng = pos.lng - 0.5;
+        clickedX = leafToGenX(lng);
+        clickedY = leafToGenY(lat);
+        if (routing) {
+            addToRoute(lat, lng);
+        } else {
+            updateFragmentFromView(lat, lng, map.getZoom());
+            removePlayerLocationMarker();
+            if (editing) {
+                let type = e.target.options.markerType;
+                selectEditorPane("edit_" + type);
+            }
+        }
+    }
+
+
+    //
+    // marker handling
+    //
+
     function getMarkersAt(oX, oY) {
+        // get all markers at genfanad coordinates
         oX = genToLeafX(oX);
         oY = genToLeafY(oY);
         let markers = [];
@@ -266,6 +391,7 @@ window.onload = (event) => {
     }
 
     function deleteMarkersAt(oX, oY) {
+        // delete all markers at genfanad coordinates
         let markers = getMarkersAt(oX, oY);
         for (marker of markers) {
             marker.remove();
@@ -280,10 +406,16 @@ window.onload = (event) => {
     let currentRoute = null;
     let routing = false;
 
-    // parse anchor into current route
-    function handleRouteAnchor(pieces) {
+    function updateRouteFromAnchor(pieces) {
+        // parse list of x,y values and create a route
+        // used by fragment parsing
+        //
+        // note: if length of pieces is odd, the last value
+        //       is assumed to be a zoom value
         let route = [];
         let position = [];
+        let avgX = 0;
+        let avgY = 0;
         for (var num of pieces) {
             position.push(parseFloat(num));
             if (position.length == 2) {
@@ -300,10 +432,25 @@ window.onload = (event) => {
         });
         currentRoute.setZIndex(1000000);
         currentRoute.addTo(map);
+
+        if (!routing) {
+            // note: only change map view if we are not actively
+            //       editing the route.
+            let zoom = 0.5;
+            if (position.length == 1) {
+                // a leftover piece means zoom level
+                zoom = parseFloat(position[0]);
+            }
+            zoom = minZoom + (maxZoom - minZoom) * zoom;
+            var avgLat = route.reduce((sum, p) => sum + p[0], 0) / route.length;
+            var avgLng = route.reduce((sum, p) => sum + p[1], 0) / route.length;
+            // TODO: fit zoom to route
+            map.setView([avgLat, avgLng], zoom);
+        }
     }
 
-    // begin / end route
     function toggleRoute() {
+        // toggle interactive route creation
         routing = !routing;
         if (routing) {
             window.location.hash = '#route';
@@ -313,8 +460,8 @@ window.onload = (event) => {
         }
     }
 
-    // add location to current route
     function addToRoute(lat, lon) {
+        // add one location to the current route
         if (!window.location.hash.startsWith('#route')) {
             window.location.hash = '#route';
         }
@@ -322,150 +469,56 @@ window.onload = (event) => {
         let newPoint = '_' + leafToGenX(lon) + '_' + leafToGenY(lat);
         window.location.hash = window.location.hash + newPoint;
     }
-        
-    function setupRouteButton() {
+
+    function initializeRouteCreation() {
         document.getElementById('routebutton').onclick = toggleRoute;
     }
 
-    function genToLeafOffset(pos) {
-        return [
-            genToLeafY(pos[0]) + 0.5,
-            genToLeafX(pos[1]) + 0.5
-        ];
-    }
-
-    function genToLeaf(pos) {
-        return [genToLeafY(pos[0]), genToLeafX(pos[1])];
-    }
-
-    function leafToGen(pos) {
-        return [leafToGenY(pos[0]), leafToGenX(pos[1])];
-    }
-
-    function genToLeafY(y) {
-        return ((y1 + y0) - y) - 1;
-    }
-
-    function genToLeafX(x) {
-        return x;
-    }
-
-    function leafToGenY(y) {
-        return ((y1 + y0) - y) - 1;
-    }
-
-    function leafToGenX(x) {
-        return x;
-    }
-
     //
-    // moving things
+    // player location marker
     //
 
-    let movingElement = false;
-    let movingAPI = null;
-    
-    function beginMoving(api_name) {
-        movingElement = true;
-        movingAPI = api_name;
-    }
-
-    function finishMoving() {
-        if (!movingElement || movingAPI == null) {
-            movingElement = false;
-            return;
-        }
-        movingElement = false;
-
-        document.getElementById(movingAPI + "_map").value = mapName;
-        document.getElementById(movingAPI + "_tox").value = "" + clickedX;
-        document.getElementById(movingAPI + "_toy").value = "" + clickedY;
-        let data = new FormData(document.getElementById(movingAPI + "_form"));
-        apiWrite(movingAPI, data, function (response) {
-            if (response.status == 'okay') {
-                let pos = [parseFloat(data.get('x')), parseFloat(data.get('y'))];
-                deleteMarkersAt(pos[0], pos[1]);
-                if (response.icons) {
-                    addIcons(response.icons);
-                }
-                if (response.monsters) {
-                    addMonsters(response.monsters);
-                }
-                if (response.locations) {
-                    addLocations(response.locations);
-                }
-                movingAPI = null;
-            }
-        });
-        selectEditorPane('');
-    }
-
-    //
-    // handle anchor update / route when clicking on a marker
-    //
-
-    function markerClicked(e) {
-        let pos = e.target.getLatLng();
-        let lat = pos.lat - 0.5;
-        let lng = pos.lng - 0.5;
-        clickedX = leafToGenX(lng);
-        clickedY = leafToGenY(lat);
-        if (routing) {
-            addToRoute(lat, lng);
-        } else {
-            setAnchorForView(lat, lng, map.getZoom(), false);
-            if (editing) {
-                let type = e.target.options.markerType;
-                selectEditorPane("edit_" + type);
-            }
-        }
-    }
-
-    //
-    // location marker
-    //
-
-    let currentLocationIcon = L.divIcon({
+    let currentPlayerLocationIcon = L.divIcon({
         className: 'currentLocationMarker',
     });
-    let currentLocationMarker = null;
-    let enableLocationMarker = new URLSearchParams(window.location.search).has('location');
+    let playerLocationMarker = null;
+    let enablePlayerLocationMarker = new URLSearchParams(window.location.search).has('location');
 
-    function getCurrentLocationMarker() {
-        if (!enableLocationMarker) {
+    function getPlayerLocationMarker() {
+        if (!enablePlayerLocationMarker) {
             return;
         }
 
-        if (currentLocationMarker == null) {
-            currentLocationMarker = L.marker([0, 0], {
-                icon: currentLocationIcon,
+        if (playerLocationMarker == null) {
+            playerLocationMarker = L.marker([0, 0], {
+                icon: currentPlayerLocationIcon,
             });
-            currentLocationMarker.addTo(map);
+            playerLocationMarker.addTo(map);
         }
-        return currentLocationMarker;
+        return playerLocationMarker;
     }
 
-    function removeCurrentLocationMarker() {
-        if (!enableLocationMarker) {
+    function removePlayerLocationMarker() {
+        if (!enablePlayerLocationMarker) {
             return;
         }
 
-        if (currentLocationMarker != null) {
-            currentLocationMarker.remove();
-            currentLocationMarker = null;
+        if (playerLocationMarker != null) {
+            playerLocationMarker.remove();
+            playerLocationMarker = null;
         }
     }
 
-    function updateCurrentLocation() {
-        if (!enableLocationMarker) {
+    function updatePlayerLocationMarker() {
+        if (!enablePlayerLocationMarker) {
             return;
         }
 
-        if (currentAnchorX != null && currentAnchorY != null) {
-            var marker = getCurrentLocationMarker();
-            marker.setLatLng([currentAnchorY, currentAnchorX]);
+        if (currentFragmentX != null && currentFragmentY != null) {
+            var marker = getPlayerLocationMarker();
+            marker.setLatLng([currentFragmentY, currentFragmentX]);
         } else {
-            removeCurrentLocationMarker();
+            removePlayerLocationMarker();
         }
     }
 
@@ -735,6 +788,44 @@ window.onload = (event) => {
         }
     }
 
+    let movingElement = false;
+    let movingAPI = null;
+
+    function beginMoving(api_name) {
+        movingElement = true;
+        movingAPI = api_name;
+    }
+
+    function finishMoving() {
+        if (!movingElement || movingAPI == null) {
+            movingElement = false;
+            return;
+        }
+        movingElement = false;
+
+        document.getElementById(movingAPI + "_map").value = mapName;
+        document.getElementById(movingAPI + "_tox").value = "" + clickedX;
+        document.getElementById(movingAPI + "_toy").value = "" + clickedY;
+        let data = new FormData(document.getElementById(movingAPI + "_form"));
+        apiWrite(movingAPI, data, function (response) {
+            if (response.status == 'okay') {
+                let pos = [parseFloat(data.get('x')), parseFloat(data.get('y'))];
+                deleteMarkersAt(pos[0], pos[1]);
+                if (response.icons) {
+                    addIcons(response.icons);
+                }
+                if (response.monsters) {
+                    addMonsters(response.monsters);
+                }
+                if (response.locations) {
+                    addLocations(response.locations);
+                }
+                movingAPI = null;
+            }
+        });
+        selectEditorPane('');
+    }
+
     //
     // load data from api to map
     //
@@ -813,7 +904,7 @@ window.onload = (event) => {
     // style
     //
 
-    function setupMapSpecificStyle(mapName) {
+    function initializeMapSpecificStyle(mapName) {
         switch (mapName) {
             case 'world':
                 break;
@@ -887,7 +978,7 @@ window.onload = (event) => {
     // Icons / Markers / Etc
     //
 
-    // Initialize all map groupings
+    // Initialize all map groupings - these will be used by
     let monsterGroup = new L.LayerGroup().addTo(map);
     let questGroup = new L.LayerGroup().addTo(map);
     let shopGroup = new L.LayerGroup().addTo(map);
@@ -1019,9 +1110,9 @@ window.onload = (event) => {
     //
 
     fetchMapInfo();
-    setupAnchors();
-    setupMapClick();
-    setupRouteButton();
+    initializeFragmentHandling();
+    initializeMapClickHandlers();
+    initializeRouteCreation();
     setupAdminTools();
 
     // done: display

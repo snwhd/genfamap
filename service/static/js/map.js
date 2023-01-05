@@ -300,6 +300,14 @@ window.onload = (event) => {
         });
         currentRoute.setZIndex(1000000);
         currentRoute.addTo(map);
+
+        let zoom = 0.5;
+        if (position.length == 1) {
+            // a leftover piece means zoom level
+            zoom = parseFloat(position[0]);
+        }
+        zoom = minZoom + (maxZoom - minZoom) * zoom;
+        map.setView(route[0], zoom);
     }
 
     // begin / end route
