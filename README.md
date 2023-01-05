@@ -75,10 +75,3 @@ and renders custom map markers on top.
 
 Includes editor tools to make changes to the map in-client.
 
-## TODO
-- automate update of map image on genfanad updates
-- personal, locally stored map markers
-- better player icon
-  - interpolate player icon movement?
-- text filter/search markers
-
