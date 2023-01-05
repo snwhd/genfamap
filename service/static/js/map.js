@@ -331,11 +331,6 @@ window.onload = (event) => {
                 clickedX = leafToGenX(lng);
                 clickedY = leafToGenY(lat);
 
-                // TODO: remove
-                //console.log([[lng, lat], [clickedX, clickedY]]);
-                console.log([lng, lat]);
-
-
                 if (editing) {
                     if (movingElement) {
                         finishMoving();
