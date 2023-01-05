@@ -20,6 +20,26 @@ resource urls. e.g. world, world2, dungeon, fairy.
 
 this will download a bunch of files into `./files/<version>/<region>/`.
 
+### render
+
+`./scrape.py render <region> <out filename>` renders downloaded map
+content into a world map png.
+
+Note: for some reason, dungeon region (-1, 2) is an empty region marked as
+all white on the minimap. When rendering a new map for updated version, this
+region's data file should be deleted.
+
+### walkable
+
+`./scrape.py walkable <region>` prints to stdout a 2d array representing
+walkable and non walkablle terrain of region.
+
+This data should be indexed as `array[y + abs(miny)][x + abs(minx)]` where x and
+y are a point in genfanad, and minx and miny are the minimum x and y values of
+the specific region. So for the main world, that would be
+`array[y + 128][x + 256]` as of version 0.110. The offsets will change if new
+regions are added east or north of the current map.
+
 ### imgfetch
 
 `./scrape.py imgfetch <region>` Pulls icon images referenced from resource files,
@@ -35,15 +55,6 @@ genfanad data. Where 0, 0 is zamok region.
 
 - `--nocache` ignores and overwrites any files saved locally
 - `--cachev <version>` download an older cache version
-
-### render
-
-`./scrape.py --render <region> <out filename>` renders downloaded map
-content into a world map png.
-
-Note: for some reason, dungeon region (-1, 2) is an empty region marked as
-all white on the minimap. When rendering a new map for updated version, this
-region's data file should be deleted.
 
 ### icons
 

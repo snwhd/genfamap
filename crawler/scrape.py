@@ -228,17 +228,7 @@ def cmd_segment(args):
     )
 
 
-def cmd_render(args):
-    region = args.region
-    cache_path = os.path.join(CACHE_DIR, CACHE_VERSION, region)
-    files = os.listdir(cache_path)
-
-    map_files = {}
-    for filename in files:
-        if filename.endswith('_combined.json'):
-            with open(os.path.join(cache_path, filename)) as f:
-                map_files[filename] = json.load(f)
-
+def get_dimensions(map_files):
     sw = 0
     sh = 0
 
@@ -282,6 +272,43 @@ def cmd_render(args):
     mminx += offsetx
     mmaxy += offsety
     mminy += offsety
+
+    return (
+        sw,
+        sh,
+        mminx,
+        mmaxx,
+        mminy,
+        mmaxy,
+        offsetx,
+        offsety,
+    )
+
+
+def get_map_files(region):
+    cache_path = os.path.join(CACHE_DIR, CACHE_VERSION, region)
+    files = os.listdir(cache_path)
+
+    map_files = {}
+    for filename in files:
+        if filename.endswith('_combined.json'):
+            with open(os.path.join(cache_path, filename)) as f:
+                map_files[filename] = json.load(f)
+    return map_files
+
+
+
+def cmd_render(args):
+    region = args.region
+    map_files = get_map_files(region)
+    (sw,
+     sh,
+     mminx,
+     mmaxx,
+     mminy,
+     mmaxy,
+     offsetx,
+     offsety) = get_dimensions(map_files)
 
     mdx = (mmaxx - mminx) + 1
     mdy = (mmaxy - mminy) + 1
@@ -568,6 +595,62 @@ def cmd_icons(args):
     pprint.pprint(results)
 
 
+def cmd_walkable(args):
+    region = args.region
+    map_files = get_map_files(region)
+    (sw,
+     sh,
+     mminx,
+     mmaxx,
+     mminy,
+     mmaxy,
+     offsetx,
+     offsety) = get_dimensions(map_files)
+
+    mdx = (mmaxx - mminx) + 1
+    mdy = (mmaxy - mminy) + 1
+
+    # TODO: segment w/h should be 128, but for some reason all of the
+    #       arrays have 129 elements. Some hacks below to fix this
+    sw = WSIZE
+    sh = WSIZE
+
+    walk_data = []
+    for y in range(mdy * sh):
+        row = []
+        for x in range(mdx * sw):
+            row.append(0)
+        walk_data.append(row)
+
+    # print((mdx, mdy, sw, sh))
+    # print(f'world size: {mdx}x{mdy}')
+    # print(f'segment size: {sw}x{sh}')
+    # print(f'array size: {mdy * sh}x{mdx * sw}')
+
+    for filename, data in map_files.items():
+        xs, ys, _ = filename.split('_')
+        wx = int(xs) + offsetx
+        wy = int(ys) + offsety
+
+        mesh = data['mesh']
+        for x, row in enumerate(mesh):
+            if x == sw: break
+
+            for y, tile in enumerate(row):
+                if y == sh: break
+
+                if tile['walkable'] == True:
+                    xx = (wx * sw) + x
+                    yy = (wy * sh) + y
+                    try:
+                        walk_data[yy][xx] = 1
+                    except Exception as e:
+                        print(f'{(xs, ys)} at {(wx, wy)}-{(x, y)} pos={(xx, yy)}')
+                        raise e
+
+    print(walk_data)
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
@@ -598,6 +681,10 @@ if __name__ == '__main__':
     cmd.add_argument('regions', type=str, nargs='+')
     cmd.add_argument('--zones', type=int, nargs='+')
     cmd.set_defaults(func=cmd_icons)
+
+    cmd = parsers.add_parser('walkable')
+    cmd.add_argument('region', type=str)
+    cmd.set_defaults(func=cmd_walkable)
 
     args = parser.parse_args()
     if hasattr(args, 'func') and args.func:
