@@ -4,5 +4,6 @@
 .db$
 venv/
 backups/
+crawler/files
 
 secrets.py
