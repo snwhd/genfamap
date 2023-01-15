@@ -581,7 +581,8 @@ window.onload = (event) => {
                         let text = data.get('name') + " (level " + data.get('level') + ")";
                         let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
                         new CustomMarker(genToLeafOffset(pos), {
-                            markerType: 'monster'
+                            markerType: 'monster',
+                            searchData: monster.name
                         }).bindPopup(text)
                           .on('click', markerClicked)
                           .addTo(monsterGroup);
@@ -631,7 +632,8 @@ window.onload = (event) => {
                         let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
                         new CustomMarker(genToLeafOffset(pos), {
                             icon: purpleIcon,
-                            markerType: 'location'
+                            markerType: 'location',
+                            searchData: name
                         }).bindPopup(popup)
                           .on('click', markerClicked)
                           .addTo(locationGroup);
@@ -677,6 +679,7 @@ window.onload = (event) => {
                         new CustomMarker(genToLeafOffset(pos), {
                             icon: iconIcons[data.get('icon')],
                             markerType: 'icon',
+                            searchData: data.get('name')
                         }).on('click', markerClicked)
                           .bindPopup(data.get('name'))
                           .addTo(iconGroups[response.group]);
@@ -856,7 +859,8 @@ window.onload = (event) => {
 
     let CustomMarker = L.Marker.extend({
         options: {
-            markerType: ''
+            markerType: '',
+            searchData: ''
         }
     });
 
@@ -866,7 +870,8 @@ window.onload = (event) => {
         }
         for (var monster of monsters[mapName]) {
             let opts = {
-                markerType: 'monster'
+                markerType: 'monster',
+                searchData: monster.name
             };
             if (monster.boss) {
                 opts.icon = redIcon;
@@ -890,7 +895,8 @@ window.onload = (event) => {
             let popup = '<a href="/' + m + '#' + x + '_' + y + '">' + mapToUrlName(loc.name) + '</a>';
             new CustomMarker(genToLeafOffset(loc.position), {
                 icon: purpleIcon,
-                markerType: 'location'
+                markerType: 'location',
+                searchData: loc.name
             }).bindPopup(popup)
               .on('click', markerClicked)
               .addTo(locationGroup);
@@ -905,7 +911,8 @@ window.onload = (event) => {
             for (var icon of icons[mapName]) {
                 new CustomMarker(genToLeafOffset(icon.position), {
                     icon: iconIcons[icon.icon],
-                    markerType: 'icon'
+                    markerType: 'icon',
+                    searchData: icon.name
                 }).on('click', markerClicked)
                   .bindPopup(icon.name)
                   .addTo(iconGroups[icon.group]);
@@ -940,6 +947,80 @@ window.onload = (event) => {
                 document.body.style.backgroundColor = 'black';
                 document.getElementById('map').style.backgroundColor = 'black';
                 break;
+        }
+    }
+
+    //
+    // search
+    //
+
+    let searchbar = null;
+    let searchinput = null;
+    let searchopen = false;
+
+    function initializeSearch() {
+        if (searchbar === null) {
+            searchbar = document.createElement('div');
+            searchbar.classList.add('searchcontainer');
+            searchinput = document.createElement('input');
+            searchinput.classList.add('searchinput');
+            searchinput.type = 'text';
+            searchinput.oninput = function (e) {
+                let value = searchinput.value.trim();
+                doSearch(value);
+            };
+
+            searchbar.appendChild(searchinput);
+        }
+
+        window.onkeyup = function (e) {
+            if (e.code === "Enter") {
+                let value = searchinput.value.trim();
+                if (searchopen && value === '') {
+                    hideSearch();
+                } else {
+                    showSearch();
+                }
+            } else if (e.code === "Escape") {
+                hideSearch();
+            }
+        }
+    }
+
+    function showSearch() {
+        if (!searchopen) {
+            document.body.appendChild(searchbar);
+            searchopen = true;
+            searchinput.focus();
+            searchinput.value = '';
+            toggleLayersOff();
+        }
+    }
+
+    function hideSearch() {
+        if (searchopen) {
+            searchbar.remove();
+            searchopen = false;
+            toggleLayersOn();
+        }
+    }
+
+    function doSearch(text) {
+        console.log("searching: " + text);
+        text = text.toLowerCase();
+        toggleLayersOn();
+        toggleLayersOff();
+        for (groupname in groups) {
+            let lgroup = groups[groupname];
+            lgroup.eachLayer(function (layer) {
+                if (layer instanceof L.Marker) {
+                    // console.log(layer);
+                    let data = layer.options.searchData;
+                    if (data && data.toLowerCase().includes(text)) {
+                        layer.addTo(map);
+                    }
+                }
+            });
         }
     }
 
@@ -1137,6 +1218,7 @@ window.onload = (event) => {
     initializeFragmentHandling();
     initializeMapClickHandlers();
     initializeRouteCreation();
+    initializeSearch();
     setupAdminTools();
 
     // done: display
