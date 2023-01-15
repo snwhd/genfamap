@@ -53,7 +53,7 @@ window.onload = (event) => {
     const dimensions = {
         'world':   [ -2, -1, 3, 3 ],
         'world1':  [ -2, -1, 2, 2 ],
-        'world2':  [  0, -1, 2, 0 ],
+        'world2':  [ -1, -1, 2, 2 ],
         'fae':     [ -1,  0, 1, 1 ],
         'dungeon': [ -2, -1, 3, 3 ]
     };

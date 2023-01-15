@@ -16,7 +16,7 @@ import os
 
 
 CACHE_DIR = 'files'
-CACHE_VERSION = '0.108'
+CACHE_VERSION = '0.112'
 STATIC_ENDPOINT = f'https://genfanad-static.s3.us-east-2.amazonaws.com/versioned/{CACHE_VERSION}/data_client'
 IMAGES_DIR = 'img'
 HTML_DIR = 'html'
@@ -25,7 +25,7 @@ WSIZE = 128
 # TODO: why is calculated size 129?
 
 KNOWN_SEGMENTS = {
-    'world': [
+    'world': {
         (-1, 0),
         (-1, 1),
         (-1, 2),
@@ -42,11 +42,11 @@ KNOWN_SEGMENTS = {
         ( 3,-1),
         ( 3, 0),
         ( 3, 1),
-    ],
-    'world2': [
+    },
+    'world2': {
         (2, -1),
-    ],
-    'dungeon': [
+    },
+    'dungeon': {
         (-1, 1),
         (-2, 2),
         ( 0, 0),
@@ -54,15 +54,28 @@ KNOWN_SEGMENTS = {
         ( 0, 3),
         ( 1, 0),
         ( 3, 1),
-    ],
-    'fairy': [
+    },
+    'fairy': {
         (-1, 0),
         ( 0, 0),
         ( 0, 1),
         ( 1, 0),
         ( 1, 1),
-    ],
+    },
 }
+
+
+def update_known_segments():
+    regions = os.listdir(os.path.join(CACHE_DIR, CACHE_VERSION))
+    for region in regions:
+        if region not in KNOWN_SEGMENTS:
+            KNOWN_SEGMENTS[region] = set()
+        segments_dir = os.path.join(CACHE_DIR, CACHE_VERSION, region)
+        for filename in os.listdir(segments_dir):
+            if filename.endswith('.zip'):
+                coords = tuple(map(int, filename.split('.')[0].split('_')))
+                assert len(coords) == 2
+                KNOWN_SEGMENTS[region].add(coords)
 
 
 _invalid_icons = set()
@@ -182,8 +195,19 @@ def get_segment_data(
 def cmd_crawl(args):
     visited = set()
 
+    update_known_segments()
     todo = set(KNOWN_SEGMENTS.get(args.region, []))
     todo.add((0, 0))
+
+    if args.region in ('world1', 'dungeon'):
+        # dungeon and other world levels will overlap with
+        # the world, so preload all those segments
+        for segment in KNOWN_SEGMENTS['world']:
+            todo.add(segment)
+    elif args.region == 'world2':
+        # same with world1 and world2
+        for segment in KNOWN_SEGMENTS['world1']:
+            todo.add(segment)
 
     while len(todo):
         pos = todo.pop()
