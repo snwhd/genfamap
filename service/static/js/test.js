@@ -95,6 +95,9 @@ window.onload = (event) => {
     //
 
     const mapName = getMapName();
+
+    let userInitiatedPan = false;
+
     let minZoom = 0; // calculated later
     let maxZoom = 6;
 
@@ -204,9 +207,14 @@ window.onload = (event) => {
     //
 
     let currentFragmentPosition = [null, null, null];
-    let ignoreFragmentUpdate = false;
+    let ignoreNextFragmentUpdate = false;
+    let ignoreFragmentChanges = false;
 
-    function updateViewFromFragment() {
+    function updateViewFromFragment() {true;
+        if (ignoreFragmentChanges) {
+            return;
+        }
+
         // change the map view and zoom to the current url fragment
         let fragment = window.location.hash.substr(1);
         if (fragment == '') {
@@ -245,6 +253,7 @@ window.onload = (event) => {
 
         // convert zoom from 0-1 to min-max, and update map
         zoom = minZoom + (maxZoom - minZoom) * zoom;
+        userInitiatedPan = false;
         map.setView([oY, oX], zoom);
 
         // save new map view
@@ -262,7 +271,7 @@ window.onload = (event) => {
                     let llat = layer.getLatLng().lat - 0.5;
                     let llng = layer.getLatLng().lng - 0.5;
                     if (llat == oY && llng == oX) {
-                        ignoreFragmentUpdate = true;
+                        ignoreNextFragmentUpdate = true;
                         layer.fire('click');
                         // TODO(genlite): this might not be expected behavior:
                         //
@@ -281,11 +290,11 @@ window.onload = (event) => {
         // save the current map view and zoom to the url fragment
         // this is called from Marker.onClick
 
-        if (ignoreFragmentUpdate) {
+        if (ignoreNextFragmentUpdate) {
             // since we auto-click markers when linked to
             // (see updateViewFromFragment) we don't want to update fragment
             // again.
-            ignoreFragmentUpdate = false;
+            ignoreNextFragmentUpdate = false;
             return;
         }
 
@@ -303,7 +312,7 @@ window.onload = (event) => {
     }
 
     function initializeFragmentHandling() {
-        // this lets us zoom and pan whenever anchor changes
+        // this lets us zoom and pan whenever anchor changes, a behavior
         window.onhashchange = updateViewFromFragment;
 
         // short time delay before updating for the first time if
@@ -466,6 +475,7 @@ window.onload = (event) => {
             var avgLat = route.reduce((sum, p) => sum + p[0], 0) / route.length;
             var avgLng = route.reduce((sum, p) => sum + p[1], 0) / route.length;
             // TODO: fit zoom to route
+            userInitiatedPan = false;
             map.setView([avgLat, avgLng], zoom);
         }
     }
@@ -983,6 +993,14 @@ window.onload = (event) => {
                 }
             } else if (e.code === "Escape") {
                 hideSearch();
+            } else if (e.code === "Space" && enablePlayerLocationMarker) {
+                // press space to snap back to player location
+                if (!searchopen) {
+                    // TODO: a cleaner method to clear saved position?
+                    currentFragmentPosition = [null, null, null];
+                    ignoreFragmentChanges = false;
+                    updateViewFromFragment();
+                }
             }
         }
     }
@@ -1052,6 +1070,14 @@ window.onload = (event) => {
             window.opener.postMessage(messageData, '*');
         }
 
+    });
+    map.on( 'movestart', function() {
+        if (userInitiatedPan && enablePlayerLocationMarker) {
+            ignoreFragmentChanges = true;
+        }
+    });
+    map.on('moveend', function() {
+        userInitiatedPan = true;
     });
 
     // scale each map segment to 1 lat/lon
