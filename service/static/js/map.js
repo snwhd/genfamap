@@ -290,6 +290,11 @@ window.onload = (event) => {
         // save the current map view and zoom to the url fragment
         // this is called from Marker.onClick
 
+        if (enablePlayerLocationMarker) {
+            // don't update when embedded in genlite
+            return;
+        }
+
         if (ignoreNextFragmentUpdate) {
             // since we auto-click markers when linked to
             // (see updateViewFromFragment) we don't want to update fragment
