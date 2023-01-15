@@ -535,9 +535,12 @@ window.onload = (event) => {
             return;
         }
 
-        if (currentFragmentX != null && currentFragmentY != null) {
+        let cX = currentFragmentPosition[0];
+        let cY = currentFragmentPosition[1];
+        let cZ = currentFragmentPosition[2];
+        if (cX != null && cY != null) {
             var marker = getPlayerLocationMarker();
-            marker.setLatLng([currentFragmentY, currentFragmentX]);
+            marker.setLatLng([cY, cX]);
         } else {
             removePlayerLocationMarker();
         }

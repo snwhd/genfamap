@@ -398,6 +398,7 @@ window.onload = (event) => {
     //
 
     // route handling
+    let currentRouteDistance = 0;
     let currentRoute = null;
     let routing = false;
 
@@ -427,6 +428,31 @@ window.onload = (event) => {
         });
         currentRoute.setZIndex(1000000);
         currentRoute.addTo(map);
+
+        let prevPoint = null;
+        currentRouteDistance = 0;
+        for (point of route) {
+            point = leafToGen(point); // should not be necessary
+            if (prevPoint != null) {
+                let dx = Math.abs(point[1] - prevPoint[1]);
+                let dy = Math.abs(point[0] - prevPoint[0]);
+                if (dy > dx) {
+                    // make dx always the lower of the two to simplify
+                    // follow up code
+                    [dx, dy] = [dy, dx];
+                }
+
+                // Diagonal movement moves by 1 y and 1 x at the same speed
+                // as walking horizontal or vertally 1 unity. So the total
+                // tiles walked is simply the lower of the two deltas (walking
+                // diagonally) followed by the remaining tiles of the longer
+                // delta. Or:
+                let distance = dx + (dy - dx);
+                currentRouteDistance += distance;
+            }
+            prevPoint = point;
+        }
+        // console.log('route distance', currentRouteDistance);
 
         if (!routing) {
             // note: only change map view if we are not actively
@@ -509,9 +535,12 @@ window.onload = (event) => {
             return;
         }
 
-        if (currentFragmentX != null && currentFragmentY != null) {
+        let cX = currentFragmentPosition[0];
+        let cY = currentFragmentPosition[1];
+        let cZ = currentFragmentPosition[2];
+        if (cX != null && cY != null) {
             var marker = getPlayerLocationMarker();
-            marker.setLatLng([currentFragmentY, currentFragmentX]);
+            marker.setLatLng([cY, cX]);
         } else {
             removePlayerLocationMarker();
         }
