@@ -2,13 +2,18 @@
 from typing import (
     Any,
     Dict,
+    List,
     Optional,
+    Set,
+    Tuple,
 )
 from PIL import Image, ImageDraw
+from scipy.spatial import ConvexHull
 
 import requests
 import zipfile
 import pathlib
+import random
 import pprint
 import time
 import json
@@ -475,7 +480,7 @@ def cmd_render(args):
     # img = img.resize(
     #     (img.width * scale_size, img.height * scale_size),
     #     Image.NEAREST,
-    # ) 
+    # )
 
     img.save(args.filename)
 
@@ -619,8 +624,7 @@ def cmd_icons(args):
     pprint.pprint(results)
 
 
-def cmd_walkable(args):
-    region = args.region
+def get_walkable_array(region: str):
     map_files = get_map_files(region)
     (sw,
      sh,
@@ -671,8 +675,94 @@ def cmd_walkable(args):
                     except Exception as e:
                         print(f'{(xs, ys)} at {(wx, wy)}-{(x, y)} pos={(xx, yy)}')
                         raise e
+    return walk_data
 
+
+def cmd_walkable(args):
+    walk_data = get_walkable_array(args.region)
     print(walk_data)
+
+
+def cmd_bounds(args):
+    walk_data = get_walkable_array(args.region)
+    grouped = [ [ False ] * len(r) for r in walk_data ]
+
+    polygons = []
+    groups = []
+
+    for y, row in enumerate(walk_data):
+        for x, walkable in enumerate(row):
+            if walkable and not grouped[y][x]:
+                # we have not processed this one yet, identify all
+                # tiles reachable from here
+                group = get_walkable_region(walk_data, x, y, grouped)
+                groups.append(group)
+
+                if len(group) < 3:
+                    # print('cannot create group smaller than 3 tiles')
+                    continue
+
+                try:
+                    hull = ConvexHull(group)
+                except Exception as e:
+                    # print(f'failed to process: {group}')
+                    continue
+
+                polygons.append([ group[i] for i in hull.vertices ])
+
+    # pprint.pprint(polygons)
+    for i, polygon in enumerate(polygons):
+        print(f'"TODO: name me {i}": {{')
+        print(f'    polygon: {polygon}',)
+        print('    subLocations: {')
+        print('    }')
+        if i == len(polygons) - 1:
+            print('}')
+        else:
+            print('},')
+
+
+    # img = Image.new(
+    #     mode='RGBA',
+    #     size=(len(grouped[0]), len(grouped)),
+    #     color=(0, 0, 0, 255),
+    # )
+    # pixels = img.load()
+
+    # for group in groups:
+    #     color = (
+    #         random.randint(0, 255),
+    #         random.randint(0, 255),
+    #         random.randint(0, 255),
+    #         255
+    #     )
+    #     for x, y in group:
+    #         pixels[x, y] = color
+    # img.save('walkable.png')
+
+
+
+
+def get_walkable_region(walk_data, x, y, grouped):
+    todo: List[Tuple[int, int]] = [(x, y)]
+    done: Set[Tuple[int, int]] = set()
+    group: List[Tuple[int, int]] = []
+
+    while len(todo):
+        x, y = todo.pop(0)
+        done.add((x, y))
+        grouped[y][x] = True
+
+        if walk_data[y][x]:
+            group.append((x, y))
+            for dx in [-1, 0, 1]:
+                for dy in [-1, 0, 1]:
+                    if dx != 0 and dy != 0:
+                        continue # ignore diagonals
+                    newpos = (x + dx, y + dy)
+                    if newpos not in done and newpos not in todo:
+                        todo.append(newpos)
+    return group
 
 
 if __name__ == '__main__':
@@ -709,6 +799,10 @@ if __name__ == '__main__':
     cmd = parsers.add_parser('walkable')
     cmd.add_argument('region', type=str)
     cmd.set_defaults(func=cmd_walkable)
+
+    cmd = parsers.add_parser('bounds')
+    cmd.add_argument('region', type=str)
+    cmd.set_defaults(func=cmd_bounds)
 
     args = parser.parse_args()
     if hasattr(args, 'func') and args.func:
