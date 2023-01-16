@@ -89,6 +89,36 @@ window.onload = (event) => {
         }
     }
 
+    function initializeMessageHandling() {
+        window.onmessage = (event) => {
+            if (event.data && event.data.action) {
+                switch (event.data.action) {
+                    case "hideui":
+                        hideOrShowUI(true);
+                        break;
+                    case "showui":
+                        hideOrShowUI(false);
+                        break;
+                    default:
+                }
+            }
+        };
+    }
+
+    function hideOrShowUI(hideui) {
+        let value = hideui ? 'hidden' : 'visible';
+        for (e of document.getElementsByClassName('footer')) {
+            e.style.visibility = value;
+        }
+        for (e of document.getElementsByClassName('leaflet-control-container')) {
+            e.style.visibility = value;
+        }
+    }
+
+    function hideOrShowUIFromURL() {
+        let hideui = new URLSearchParams(window.location.search).has('hideui');
+        hideOrShowUI(hideui);
+    }
 
     //
     // global map state
@@ -1341,6 +1371,9 @@ window.onload = (event) => {
     initializeRouteCreation();
     initializeSearch();
     setupAdminTools();
+    hideOrShowUIFromURL();
+
+    initializeMessageHandling();
 
     // done: display
     setTimeout(function() {

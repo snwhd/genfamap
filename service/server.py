@@ -204,7 +204,11 @@ class WebServer:
             Permission.EDITOR.value,
         )
         is_test = request.args.get('test') is not None
-        return self.render('map.html', admin=is_admin, is_test=is_test)
+        return self.render(
+            'map.html',
+            admin=is_admin,
+            is_test=is_test,
+        )
 
     def handle_confirm(self, request):
         """ confirm access tokens for editor/admin access """
