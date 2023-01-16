@@ -211,10 +211,6 @@ window.onload = (event) => {
     let ignoreFragmentChanges = false;
 
     function updateViewFromFragment() {true;
-        if (ignoreFragmentChanges) {
-            return;
-        }
-
         // change the map view and zoom to the current url fragment
         let fragment = window.location.hash.substr(1);
         if (fragment == '') {
@@ -254,12 +250,16 @@ window.onload = (event) => {
         // convert zoom from 0-1 to min-max, and update map
         zoom = minZoom + (maxZoom - minZoom) * zoom;
         userInitiatedPan = false;
-        map.setView([oY, oX], zoom);
 
         // save new map view
         currentFragmentPosition = [oX, oY, zoom];
-
         updatePlayerLocationMarker();
+
+        if (ignoreFragmentChanges) {
+            return;
+        }
+
+        map.setView([oY, oX], zoom);
 
         // this is a bit hacky, but here we check each marker on the map to see
         // if the fragment points to one (e.g. shared link). If so, we fire a
@@ -466,7 +466,6 @@ window.onload = (event) => {
             }
             prevPoint = point;
         }
-        // console.log('route distance', currentRouteDistance);
 
         if (!routing) {
             // note: only change map view if we are not actively
@@ -521,10 +520,6 @@ window.onload = (event) => {
     let enablePlayerLocationMarker = new URLSearchParams(window.location.search).has('location');
 
     function getPlayerLocationMarker() {
-        if (!enablePlayerLocationMarker) {
-            return;
-        }
-
         if (playerLocationMarker == null) {
             playerLocationMarker = L.marker([0, 0], {
                 icon: currentPlayerLocationIcon,
@@ -1029,7 +1024,6 @@ window.onload = (event) => {
     }
 
     function doSearch(text) {
-        console.log("searching: " + text);
         text = text.toLowerCase();
         toggleLayersOn();
         toggleLayersOff();
@@ -1037,7 +1031,6 @@ window.onload = (event) => {
             let lgroup = groups[groupname];
             lgroup.eachLayer(function (layer) {
                 if (layer instanceof L.Marker) {
-                    // console.log(layer);
                     let data = layer.options.searchData;
                     if (data && data.toLowerCase().includes(text)) {
                         layer.addTo(map);
