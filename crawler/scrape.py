@@ -9,6 +9,8 @@ from typing import (
 )
 from PIL import Image, ImageDraw
 from scipy.spatial import ConvexHull
+from shapely.geometry.polygon import Polygon
+from shapely.geometry import Point
 
 import requests
 import zipfile
@@ -683,6 +685,19 @@ def cmd_walkable(args):
     print(walk_data)
 
 
+def offset_polygon(polygon, ox, oy):
+    """convert to genfanad coordinates"""
+    new_poly = []
+    for point in polygon:
+        # TODO: this is hardcoded, change per region :/
+        new_poly.append((
+            point[0] - ox,
+            point[1] - oy,
+        ))
+
+    return new_poly
+
+
 def cmd_bounds(args):
     walk_data = get_walkable_array(args.region)
     grouped = [ [ False ] * len(r) for r in walk_data ]
@@ -710,24 +725,14 @@ def cmd_bounds(args):
 
                 polygons.append([ group[i] for i in hull.vertices ])
 
-    # pprint.pprint(polygons)
-    for i, polygon in enumerate(polygons):
-        print(f'"TODO: name me {i}": {{')
-        print(f'    polygon: {polygon}',)
-        print('    subLocations: {')
-        print('    }')
-        if i == len(polygons) - 1:
-            print('}')
-        else:
-            print('},')
 
 
-    # img = Image.new(
-    #     mode='RGBA',
-    #     size=(len(grouped[0]), len(grouped)),
-    #     color=(0, 0, 0, 255),
-    # )
-    # pixels = img.load()
+    img = Image.new(
+        mode='RGBA',
+        size=(len(grouped[0]), len(grouped)),
+        color=(0, 0, 0, 255),
+    )
+    pixels = img.load()
 
     # for group in groups:
     #     color = (
@@ -738,9 +743,47 @@ def cmd_bounds(args):
     #     )
     #     for x, y in group:
     #         pixels[x, y] = color
-    # img.save('walkable.png')
 
+    # pprint.pprint(polygons)
 
+    map_files = get_map_files(args.region)
+    (sw,
+     sh,
+     mminx,
+     mmaxx,
+     mminy,
+     mmaxy,
+     offsetx,
+     offsety) = get_dimensions(map_files)
+
+    for i, polygon in enumerate(polygons):
+        gpoly = offset_polygon(polygon, offsetx, offsety)
+
+        print(f'"TODO: name me {i}": {{')
+        print(f'    polygon: {gpoly}',)
+        print('    subLocations: {')
+        print('    }')
+        if i == len(polygons) - 1:
+            print('}')
+        else:
+            print('},')
+
+        color = (
+            random.randint(0, 255),
+            random.randint(0, 255),
+            random.randint(0, 255),
+            255
+        )
+
+        sp = Polygon(polygon)
+        bounds = sp.bounds
+        for y in range(int(bounds[1]), int(bounds[3]) + 1):
+            for x in range(int(bounds[0]), int(bounds[2] + 1)):
+                point = Point(x, y)
+                if sp.contains(point):
+                    pixels[x, y] = color
+
+    img.save('walkable.png')
 
 
 def get_walkable_region(walk_data, x, y, grouped):
