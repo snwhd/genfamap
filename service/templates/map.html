@@ -65,6 +65,8 @@
 			<button id="pick_add_location">Add Location</button>
 			<br>
 			<button id="pick_add_icon">Add Icon</button>
+			<br>
+			<button id="pick_add_npc">Add NPC</button>
 		</div>
 
 		<div class="editorform" id="add_monster">
@@ -94,6 +96,32 @@
 				<br>
 
 				<input type="submit" value="submit" id="add_monster_submit">
+			</form>
+		</div>
+
+		<div class="editorform" id="add_npc">
+			<h4>add npcs</h4>
+			<form id="add_npc_form">
+				<label>name</label>
+				<input type="text" name="name">
+				<br>
+
+				<label>map</label>
+				<select name="map" id="add_npc_map">
+					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
+					<option value="fae">fae</option>
+					<option value="dungeon">dungeon</option>
+				</select>
+				<br>
+
+				<label>position</label>
+				<input type="text" name="x" id="add_npc_x">
+				<input type="text" name="y" id="add_npc_y">
+				<br>
+
+				<input type="submit" value="submit" id="add_npc_submit">
 			</form>
 		</div>
 
@@ -208,6 +236,42 @@
 				<input type="text" name="toy" id="move_location_toy">
 			</form>
 			<button id="move_location_button">Move Location</button>
+		</div>
+
+		<div class="editorform" id="edit_npc">
+			<h4>edit npc</h4>
+			<form style="display:none" id="delete_npc_form">
+				<label>map</label>
+				<select name="map" id="delete_npc_map">
+					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
+					<option value="fae">fae</option>
+					<option value="dungeon">dungeon</option>
+				</select>
+				<br>
+
+				<label>position</label>
+				<input type="text" name="x" id="delete_npc_x">
+				<input type="text" name="y" id="delete_npc_y">
+				<br>
+			</form>
+			<button id="delete_npc_button">Delete NPC</button>
+
+			<form style="display:none" id="move_npc_form">
+				<select name="map" id="move_npc_map">
+					<option value="world">world</option>
+					<option value="world1">world [1]</option>
+					<option value="world2">world [2]</option>
+					<option value="fae">fae</option>
+					<option value="dungeon">dungeon</option>
+				</select>
+				<input type="text" name="x" id="move_npc_x">
+				<input type="text" name="y" id="move_npc_y">
+				<input type="text" name="tox" id="move_npc_tox">
+				<input type="text" name="toy" id="move_npc_toy">
+			</form>
+			<button id="move_npc_button">Move NPC</button>
 		</div>
 
 		<div class="editorform" id="add_icon">

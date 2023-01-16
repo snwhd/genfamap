@@ -57,6 +57,15 @@ definitions = {
 
             FOREIGN KEY(map) REFERENCES maps(id)
         )''',
+        '''CREATE TABLE IF NOT EXISTS npcs (
+            id INTEGER PRIMARY KEY,
+            map INTEGER NOT NULL,
+            x REAL NOT NULL,
+            y REAL NOT NULL,
+            name STRING NOT NULL,
+
+            FOREIGN KEY(map) REFERENCES maps(id)
+        )''',
         '''CREATE TABLE IF NOT EXISTS locations (
             id INTEGER PRIMARY KEY,
             map INTEGER NOT NULL,

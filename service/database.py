@@ -188,6 +188,20 @@ class Database(object):
         params = (map_id, x, y, name, level, int(boss), int(manual))
         self.insert('INSERT INTO monsters VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)', params)
 
+    def insert_npc(
+        self,
+        map_name: str,
+        x: float,
+        y: float,
+        name: str,
+    ) -> None:
+        rows = self.get_map(map_name)
+        if len(rows) != 1:
+            raise ValueError('invalid map')
+        map_id = rows[0][0]
+        params = (map_id, x, y, name)
+        self.insert('INSERT INTO npcs VALUES (NULL, ?, ?, ?, ?)', params)
+
     def delete_monster(
         self,
         x: float,
@@ -200,6 +214,19 @@ class Database(object):
         map_id = rows[0][0]
         params = (x, y, map_id)
         self.execute('DELETE FROM monsters WHERE x=? AND y=? AND map=?', params)
+
+    def delete_npc(
+        self,
+        x: float,
+        y: float,
+        map_name: str,
+    ) -> None:
+        rows = self.get_map(map_name)
+        if len(rows) != 1:
+            raise ValueError('invalid map')
+        map_id = rows[0][0]
+        params = (x, y, map_id)
+        self.execute('DELETE FROM npcs WHERE x=? AND y=? AND map=?', params)
 
     def move_monster(
         self,
@@ -219,6 +246,26 @@ class Database(object):
             monster = mrows[0]
             self.execute('UPDATE monsters SET x=?, y=? WHERE x=? AND y=? AND map=?', params)
             return monster
+        return None
+
+    def move_npc(
+        self,
+        tox: float,
+        toy: float,
+        x: float,
+        y: float,
+        map_name: str,
+    ) -> None:
+        rows = self.get_map(map_name)
+        if len(rows) != 1:
+            raise ValueError('invalid map')
+        map_id = rows[0][0]
+        params = (tox, toy, x, y, map_id)
+        mrows = self.select('SELECT * FROM npcs WHERE x=? AND y=? AND map=?', params[2:])
+        if len(mrows) == 1:
+            npc = mrows[0]
+            self.execute('UPDATE npcs SET x=?, y=? WHERE x=? AND y=? AND map=?', params)
+            return npc
         return None
 
     def move_location(

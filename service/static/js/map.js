@@ -569,7 +569,9 @@ window.onload = (event) => {
         "add_location",
         "edit_location",
         "add_icon",
-        "edit_icon"
+        "edit_icon",
+        "add_npc",
+        "edit_npc"
     ];
 
     function setupAdminTools() {
@@ -649,6 +651,53 @@ window.onload = (event) => {
                           .addTo(locationGroup);
                     }
                 });
+                e.preventDefault();
+                return false;
+            }
+
+            // add npcs
+            let add_npc_button = document.getElementById("pick_add_npc");
+            add_npc_button.onclick = function(e) {
+                selectEditorPane("add_npc");
+            };
+            let add_npc_submit = document.getElementById("add_npc_submit");
+            add_npc_submit.onclick = function(e) {
+                let data = new FormData(document.getElementById("add_npc_form"));
+                apiWrite("add_npc", data, function (response) {
+                    if (response.status == 'okay') {
+                        let popup = data.get('name');
+                        let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
+                        new CustomMarker(genToLeafOffset(pos), {
+                            icon: yellowIcon,
+                            markerType: 'npc',
+                            searchData: data.get('name')
+                        }).bindPopup(popup)
+                          .on('click', markerClicked)
+                          .addTo(npcGroup);
+                    }
+                });
+                e.preventDefault();
+                return false;
+            }
+
+            // delete npcs
+            let delete_npc = document.getElementById("delete_npc_button");
+            delete_npc.onclick = function (e) {
+                let data = new FormData(document.getElementById("delete_npc_form"));
+                apiWrite("delete_npc", data, function (response) {
+                    if (response.status == 'okay') {
+                        let pos = [parseFloat(data.get('x')), parseFloat(data.get('y'))];
+                        deleteMarkersAt(pos[0], pos[1]);
+                    }
+                });
+                e.preventDefault();
+                return false;
+            }
+
+            // move npcs
+            let move_npc = document.getElementById("move_npc_button");
+            move_npc.onclick = function (e) {
+                beginMoving("move_npc");
                 e.preventDefault();
                 return false;
             }
@@ -778,6 +827,29 @@ window.onload = (event) => {
                 e = document.getElementById("move_monster_y");
                 e.value = "" + clickedY;
                 break;
+            case "add_npc":
+                var e = document.getElementById("add_npc_x");
+                e.value = "" + clickedX;
+                e = document.getElementById("add_npc_y");
+                e.value = "" + clickedY;
+                e = document.getElementById("add_npc_map");
+                e.value = mapName;
+                break;
+            case "edit_npc":
+                var e = document.getElementById("delete_npc_x");
+                e.value = "" + clickedX;
+                e = document.getElementById("delete_npc_y");
+                e.value = "" + clickedY;
+                e = document.getElementById("delete_npc_map");
+                e.value = mapName;
+
+                // move
+                e = document.getElementById("move_npc_x");
+                e.value = "" + clickedX;
+                e = document.getElementById("move_npc_y");
+                e.value = "" + clickedY;
+                break;
+
             case "add_location":
                 var e = document.getElementById("add_location_x");
                 e.value = "" + clickedX;
@@ -857,6 +929,9 @@ window.onload = (event) => {
                 if (response.locations) {
                     addLocations(response.locations);
                 }
+                if (response.npcs) {
+                    addNPCs(response.npcs);
+                }
                 movingAPI = null;
             }
         });
@@ -913,6 +988,24 @@ window.onload = (event) => {
         }
     }
 
+    function addNPCs(npcs) {
+        if (!npcs[mapName]) {
+            return;
+        }
+
+        for (var npc of npcs[mapName]) {
+            let opts = {
+                icon: yellowIcon,
+                markerType: 'npc',
+                searchData: npc.name
+            };
+            new CustomMarker(genToLeafOffset(npc.position), opts)
+                .bindPopup(npc.name)
+                .on('click', markerClicked)
+                .addTo(npcGroup);
+        }
+    }
+
     function addIcons(icons) {
         if (!icons[mapName]) {
             return;
@@ -936,6 +1029,7 @@ window.onload = (event) => {
                 addMonsters(response.data.monsters);
                 addIcons(response.data.icons);
                 addLocations(response.data.locations);
+                addNPCs(response.data.npcs);
             } else {
             }
         });
@@ -1108,6 +1202,7 @@ window.onload = (event) => {
     //
 
     // Initialize all map groupings - these will be used by
+    let npcGroup = new L.LayerGroup().addTo(map);
     let monsterGroup = new L.LayerGroup().addTo(map);
     let questGroup = new L.LayerGroup().addTo(map);
     let shopGroup = new L.LayerGroup().addTo(map);
@@ -1122,6 +1217,7 @@ window.onload = (event) => {
     let craftingGroup = new L.LayerGroup().addTo(map);
     let locationGroup = new L.LayerGroup().addTo(map);
     let iconGroups = {
+        'npc': npcGroup,
         'monster': monsterGroup,
         'quest': questGroup,
         'shop': shopGroup,
@@ -1218,6 +1314,7 @@ window.onload = (event) => {
     };
     let groups = {
         "toggle all": toggle_allGroup,
+        "npcs": npcGroup,
         "quest": questGroup,
         "shop": shopGroup,
         "bank": bankGroup,

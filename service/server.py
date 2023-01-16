@@ -418,6 +418,71 @@ class WebServer:
                         }
                         db.meta_set_modified(True)
 
+                if action == 'add_npc':
+                    check_editor()
+
+                    map_name = request.form.get('map')
+                    x = request.form.get('x')
+                    y = request.form.get('y')
+                    name = request.form.get('name')
+                    if None in (map_name, x, y, name):
+                        raise ValueError(f'missing parameter')
+                    x = float(x)
+                    y = float(y)
+                    params = (map_name, x, y, name)
+                    log = f'{action} : {params}'
+                    with Database() as db:
+                        db.log(username, log)
+                        db.insert_npc(*params)
+                        db.meta_set_modified(True)
+
+                elif action == 'delete_npc':
+                    check_editor()
+
+                    map_name = request.form.get('map')
+                    x = request.form.get('x')
+                    y = request.form.get('y')
+                    if None in (map_name, x, y):
+                        raise ValueError(f'missing parameter')
+                    x = float(x)
+                    y = float(y)
+                    params = (x, y, map_name)
+                    log = f'{action} : {params}'
+                    with Database() as db:
+                        db.log(username, log)
+                        db.delete_npc(*params)
+                        db.meta_set_modified(True)
+
+                elif action == 'move_npc':
+                    check_editor()
+
+                    map_name = request.form.get('map')
+                    x = request.form.get('x')
+                    y = request.form.get('y')
+                    tox = request.form.get('tox')
+                    toy = request.form.get('toy')
+                    if None in (map_name, x, y, tox, toy):
+                        raise ValueError(f'missing parameter')
+
+                    x = float(x)
+                    y = float(y)
+                    tox = float(tox)
+                    toy = float(toy)
+                    params = (tox, toy, x, y, map_name)
+                    log = f'{action} : {params}'
+                    with Database() as db:
+                        db.log(username, log)
+                        npc = db.move_npc(*params)
+                        if npc is None:
+                            raise ValueError('no npc at position')
+                        response['npcs'] = {
+                            map_name: [{
+                                'name': npc[4],
+                                'position': [ toy, tox ],
+                            }]
+                        }
+                        db.meta_set_modified(True)
+
                 elif action == 'add_location':
                     check_editor()
 
@@ -616,6 +681,7 @@ class WebServer:
         }[icon]
 
     def recreate_map_info(self, db: Database) -> None:
+        npcs = {}
         icons = {}
         monsters = {}
         locations = {}
@@ -625,7 +691,7 @@ class WebServer:
             for mid, name in db.select('SELECT id, name FROM maps')
         }
 
-        for mid, mapid , x, y, name, level, boss, manual in db.select('SELECT * FROM monsters'):
+        for mid, mapid, x, y, name, level, boss, manual in db.select('SELECT * FROM monsters'):
             mapname = maps[mapid]
             if mapname not in monsters:
                 monsters[mapname] = []
@@ -634,6 +700,15 @@ class WebServer:
                 'level': level,
                 'position': (y, x),
                 'boss': bool(boss),
+            })
+
+        for nid, mapid, x, y, name in db.select('SELECT * FROM npcs'):
+            mapname = maps[mapid]
+            if mapname not in npcs:
+                npcs[mapname] = []
+            npcs[mapname].append({
+                'name': name,
+                'position': (y, x),
             })
 
         for lid, mapid, x, y, name, tomap, tox, toy, manual in db.select('SELECT * FROM locations'):
@@ -661,6 +736,7 @@ class WebServer:
             })
 
         self.map_info = {
+            'npcs': npcs,
             'icons': icons,
             'monsters': monsters,
             'locations': locations,
