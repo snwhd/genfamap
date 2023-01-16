@@ -887,6 +887,10 @@ window.onload = (event) => {
                 e.value = "" + clickedY;
                 e = document.getElementById("add_location_map");
                 e.value = mapName;
+                var e = document.getElementById("add_location_dest_x");
+                e.value = "" + clickedX;
+                e = document.getElementById("add_location_dest_y");
+                e.value = "" + clickedY;
                 break;
             case "edit_location":
                 var e = document.getElementById("delete_location_x");
