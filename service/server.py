@@ -633,6 +633,38 @@ class WebServer:
                         }
                         db.meta_set_modified(True)
 
+                elif action == 'gen':
+                    check_admin()
+
+                    genfor = request.form.get('username')
+                    if genfor is None:
+                        raise ValueError('username not provided')
+                    if genfor == 'dan':
+                        raise ValueError('dont gen for dan')
+
+                    permission = None
+                    p = request.form.get('permission')
+                    if p is not None and p != '':
+                        try:
+                            # in case of invalid permission arg
+                            permission = Permission(p)
+                        except Exception as e:
+                            raise ValueError(f'invalid permission: {p}')
+
+                    t = self.generate_token()
+                    response['token'] = t
+                    with Database() as db:
+                        if db.user_exists(genfor):
+                            log = f'{action} : {genfor}'
+                            db.log(username, log)
+                            db.set_user_token(genfor, t)
+                        else:
+                            if permission is None:
+                                raise ValueError('no such user')
+                            log = f'{action} : (new) {genfor} {permission.value}'
+                            db.log(username, log)
+                            db.insert_user(genfor, permission.value, t)
+
                 elif action == 'ban':
                     check_admin()
 

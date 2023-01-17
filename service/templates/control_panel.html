@@ -3,15 +3,15 @@
     <title>Genfamap</title>
     <style>
 body {
-	text-align: center;
-	font-family: sans-serif;
+    text-align: center;
+    font-family: sans-serif;
 }
 .contentblock {
-	width: fit-content;
-	margin: auto;
-	border-style: solid;
-	border-color: #dddddd;
-	border-width: thin;
+    width: fit-content;
+    margin: auto;
+    border-style: solid;
+    border-color: #dddddd;
+    border-width: thin;
 }
 table {
     border-collapse: collapse;
@@ -20,16 +20,16 @@ table {
     font-family: sans-serif;
 
     min-width: 400px;
-	max-height: 20em;
-	overflow: auto;
-	display: block;
+    max-height: 20em;
+    overflow: auto;
+    display: block;
 }
 table thead th {
-	position: sticky;
-	top: 0;
-	z-index: 1;
-	background-color: white;
-	box-shadow: inset 0px -1px #dddddd;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: white;
+    box-shadow: inset 0px -1px #dddddd;
 }
 table thead tr {
     text-align: center;
@@ -39,7 +39,7 @@ table td {
     padding: 12px 15px;
 }
 table tbody tr {
-	text-align: left;
+    text-align: left;
     border-bottom: thin solid #dddddd;
 }
 
@@ -51,12 +51,12 @@ table tbody tr:last-of-type {
     border-bottom: 1px solid #dddddd;
 }
 #api_response {
-	position: fixed;
-	top: 1em;
-	left: 1em;
-	margin: 0;
-	color: black;
-	font-size: 2em;
+    position: fixed;
+    top: 1em;
+    left: 1em;
+    margin: 0;
+    color: black;
+    font-size: 2em;
 }
     </style>
 {% endblock %}
@@ -75,38 +75,56 @@ table tbody tr:last-of-type {
         <input id="revoke_name_input" type="text" name="username">
         <input type="submit" value="submit">
     </form>
+    <form style="display:none" id="form_gen">
+        <label>username</label>
+        <input id="gen_name_input" type="text" name="username">
+        <input type="submit" value="submit">
+    </form>
     <h1>Users</h1>
     <div class="contentblock">
-		<table>
-		<thead>
-			<tr>
-				<th>Username</th>
-				<th>Role</th>
-				<th>Activated</th>
-				<th>Banned</th>
-				<th>Session Revoked</th>
-				<th>Actions</th>
-			</tr>
-		</thead>
-		<tbody>
-		{% for u in users %}
-			<tr>
-				<td>{{u[0]}}</td>
-				<td>{{u[1]}}</td>
-				<td>{% if not u[3] %}not {% endif %} activated</td>
-				<td>{% if u[2] %} banned {% else %} no {% endif %}</td>
-				<td> {% if u[4] %} {{u[4]}} {% else %} no {% endif %}</td>
-				<td>
-					{% if not u[2] %}
-						<button onclick="doBan('{{u[0]}}')">Ban {{u[0]}}</button>
-					{% endif %}
-					<button onclick="doRevoke('{{u[0]}}')">Revoke {{u[0]}}</button>
-				</td>
-			</tr>
-		{% endfor %}
-		</tbody>
-		</table>
+        <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Activated</th>
+                <th>Banned</th>
+                <th>Session Revoked</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for u in users %}
+            <tr>
+                <td>{{u[0]}}</td>
+                <td>{{u[1]}}</td>
+                <td>{% if not u[3] %}not {% endif %} activated</td>
+                <td>{% if u[2] %} banned {% else %} no {% endif %}</td>
+                <td> {% if u[4] %} {{u[4]}} {% else %} no {% endif %}</td>
+                <td>
+                    <button onclick="doGen('{{u[0]}}')">Gen Token</button>
+                    {% if not u[2] %}
+                        <button onclick="doBan('{{u[0]}}')">Ban {{u[0]}}</button>
+                    {% endif %}
+                    <button onclick="doRevoke('{{u[0]}}')">Revoke {{u[0]}}</button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        </table>
     </div>
+
+	<h1>Actions</h1>
+	<div style="padding: 2em" class="contentblock">
+		<form id="create_form">
+			<input name="username" type="text" placeholder="username"></input>
+			<select name="permission">
+				<option value="editor">editor</option>
+				<option value="admin">admin</option>
+			</select>
+			<button type="button" onclick="return doCreate()">New User</button>
+		</form>
+	</div>
     <h1>Logs</h1>
     {% if logs %}
     <div class="contentblock">
@@ -140,10 +158,14 @@ function displayResult(result) {
     let p = document.getElementById("api_response");
     if (result.exceptionid) {
         p.innerText = "result: " + result.status + " - " + result.exceptionid;
-		p.style.color = "red";
+        p.style.color = "red";
     } else {
-        p.innerText = "result: " + result.status;
-		p.style.color = "black";
+        let value = "";
+        if (result.token) {
+            value = result.token;
+        }
+        p.innerText = "result: " + result.status + " " + value;
+        p.style.color = "black";
     }
 }
 
@@ -173,7 +195,7 @@ function doBan(user) {
 }
 
 function submitRevokeForm() {
-	let revoke_form = document.getElementById('form_revoke');
+    let revoke_form = document.getElementById('form_revoke');
     let data = new FormData(revoke_form);
     let xhr = new XMLHttpRequest();
     xhr.responseType = 'json';
@@ -187,10 +209,49 @@ function submitRevokeForm() {
 }
 
 function doRevoke(user) {
-	let input = document.getElementById("revoke_name_input");
-	input.value = user;
-	submitRevokeForm();
-	input.value = "";
+    let input = document.getElementById("revoke_name_input");
+    input.value = user;
+    submitRevokeForm();
+    input.value = "";
+}
+
+let gen_username = document.getElementById("form_gen");
+gen_username.addEventListener("submit", function(e) {
+    submitGenForm();
+    e.preventDefault();
+    return false;
+});
+
+function submitGenForm() {
+    let data = new FormData(gen_username);
+    let xhr = new XMLHttpRequest();
+    xhr.responseType = 'json';
+    xhr.onload = function() {
+        displayResult(xhr.response);
+    }
+    xhr.open("POST", "/api/gen", true);
+    xhr.send(data);
+}
+
+function doGen(user) {
+    let input = document.getElementById("gen_name_input");
+    input.value = user;
+    submitGenForm();
+    input.value = "";
+}
+
+let create_form = document.getElementById("create_form");
+function doCreate() {
+	console.log("creating");
+    let data = new FormData(create_form);
+    let xhr = new XMLHttpRequest();
+    xhr.responseType = 'json';
+    xhr.onload = function() {
+        displayResult(xhr.response);
+    }
+    xhr.open("POST", "/api/gen", true);
+    xhr.send(data);
+	return true;
 }
     </script>
 {% endblock %}
