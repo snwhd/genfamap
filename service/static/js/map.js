@@ -624,7 +624,7 @@ window.onload = (event) => {
                         let pos = [parseFloat(data.get('y')), parseFloat(data.get('x'))];
                         new CustomMarker(genToLeafOffset(pos), {
                             markerType: 'monster',
-                            searchData: monster.name
+                            searchData: data.get('name')
                         }).bindPopup(text)
                           .on('click', markerClicked)
                           .addTo(monsterGroup);
