@@ -672,11 +672,17 @@ def get_walkable_array(region: str):
                 if tile['walkable'] == True:
                     xx = (wx * sw) + x
                     yy = (wy * sh) + y
-                    try:
-                        walk_data[yy][xx] = 1
-                    except Exception as e:
-                        print(f'{(xs, ys)} at {(wx, wy)}-{(x, y)} pos={(xx, yy)}')
-                        raise e
+                    walk_data[yy][xx] = 1
+
+                    buildings = tile.get('buildings')
+                    if buildings is None or 'level0' not in buildings:
+                        continue
+
+                    level = buildings['level0']
+                    walls = level.get('walls', [])
+                    if len(walls) and 'doorframe' not in walls[0].get('type', {}):
+                        walk_data[yy][xx] = 0
+
     return walk_data
 
 
