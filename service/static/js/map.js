@@ -120,6 +120,22 @@ window.onload = (event) => {
         hideOrShowUI(hideui);
     }
 
+    function getStyle(name) {
+        for (var s = 0; s < document.styleSheets.length; s++) {
+            var sheet = document.styleSheets[s];
+            if (sheet.href == 'https://genfamap.com/static/css/main.css') {
+                var rules = sheet.cssRules ? sheet.cssRules : sheet.rules;
+                if (rules == null) return null;
+                for (var i = 0; i < rules.length; i++) {
+                    if (rules[i].selectorText === name) {
+                        return rules[i].style;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     //
     // global map state
     //
@@ -1204,6 +1220,36 @@ window.onload = (event) => {
     // map time
     //
 
+    function drawTownNames() {
+        switch (mapName) {
+            case "world":
+                addTownName("Zamok",       35,   75);
+                addTownName("Cent",       103,   80);
+                addTownName("Coyn",       220,  213);
+                addTownName("Plenty",     184,  156);
+                addTownName("Skal",       293, -197);
+                addTownName("Oorma",      472,  -97);
+                addTownName("Milltown",    33,  180);
+                addTownName("Foreboden",  149,  362);
+                addTownName("Thralltown",  61,  370);
+                addTownName("Shorthairs",  -7,  246);
+                addTownName("Shorthairs",  -7,  246);
+                addTownName("Emerald City", 360, -31);
+                break;
+        }
+    }
+
+    function addTownName(name, x, y) {
+        L.tooltip({
+                opacity: 1.0,
+                className: "townLabel",
+                permanent: true,
+                direction: "center",
+            }).setLatLng(genToLeaf([x, y]))
+            .setContent(name)
+            .addTo(townsGroup);
+    }
+
     // create map
     let map = L.map('map', {
         crs: L.CRS.Simple
@@ -1226,6 +1272,14 @@ window.onload = (event) => {
                 zoom: map.getZoom()
             };
             window.opener.postMessage(messageData, '*');
+        }
+
+        // update font size of town names
+        let style = getStyle(".townLabel");
+        if (map.getZoom() < 0.5 * (maxZoom - minZoom)) {
+            style.fontSize = "1.5em";
+        } else {
+            style.fontSize = "3em";
         }
 
     });
@@ -1268,6 +1322,7 @@ window.onload = (event) => {
     //
 
     // Initialize all map groupings - these will be used by
+    let townsGroup = new L.LayerGroup().addTo(map);
     let npcGroup = new L.LayerGroup().addTo(map);
     let monsterGroup = new L.LayerGroup().addTo(map);
     let questGroup = new L.LayerGroup().addTo(map);
@@ -1380,18 +1435,19 @@ window.onload = (event) => {
     };
     let groups = {
         "toggle all": toggle_allGroup,
+        "towns": townsGroup,
+        "monsters": monsterGroup,
+        "quests": questGroup,
         "npcs": npcGroup,
-        "quest": questGroup,
-        "shop": shopGroup,
-        "bank": bankGroup,
-        "monster": monsterGroup,
-        "location": locationGroup,
+        "shops": shopGroup,
+        "banks": bankGroup,
+        "locations": locationGroup,
         "cooking": cookingGroup,
         "forging": forgingGroup,
         "botany": botanyGroup,
         "mining": miningGroup,
         "tailoring": tailoringGroup,
-        "tree": treeGroup,
+        "logging": treeGroup,
         "butchery": butcheryGroup,
         "crafting": craftingGroup,
     };
@@ -1408,6 +1464,8 @@ window.onload = (event) => {
     initializeSearch();
     setupAdminTools();
     hideOrShowUIFromURL();
+
+    drawTownNames();
 
     initializeMessageHandling();
 

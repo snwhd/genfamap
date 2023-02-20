@@ -23,7 +23,7 @@ import os
 
 
 CACHE_DIR = 'files'
-CACHE_VERSION = '0.115'
+CACHE_VERSION = '0.116'
 STATIC_ENDPOINT = f'https://genfanad-static.s3.us-east-2.amazonaws.com/versioned/{CACHE_VERSION}/data_client'
 IMAGES_DIR = 'img'
 HTML_DIR = 'html'
