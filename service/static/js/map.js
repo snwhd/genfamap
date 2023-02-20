@@ -1131,6 +1131,38 @@ window.onload = (event) => {
                 }
             }
         }
+
+        // create search icon
+        let elements = document.getElementsByClassName('leaflet-control-zoom');
+        if (elements.length != 1) {
+            console.log('cannot draw search icon, unexpected zoom element');
+            console.log(elements);
+            return;
+        }
+
+        let e = elements[0];
+        var p = e.parentElement;
+
+        var container = document.createElement('div');
+        container.classList.add('leaflet-control-layers');
+        container.classList.add('leaflet-control');
+        container.style.cursor = 'pointer';
+        container.style.clear = 'none';
+
+        var searchIcon = document.createElement('a');
+        searchIcon.classList.add('leaflet-control-layers-toggle');
+        searchIcon.style.backgroundImage = 'url(/static/img/search.png)';
+        searchIcon.onclick = function (e) {
+            if (searchopen) {
+                hideSearch();
+            } else {
+                showSearch();
+            }
+        };
+        container.appendChild(searchIcon);
+
+        // p.insertBefore(container, e.parentElement);
+        p.appendChild(container);
     }
 
     function showSearch() {
