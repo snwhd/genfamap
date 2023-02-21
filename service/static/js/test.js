@@ -561,6 +561,7 @@ window.onload = (event) => {
 
     let currentPlayerLocationIcon = L.divIcon({
         className: 'currentLocationMarker',
+        html: '<div id="locationPulse"></div>',
     });
     let playerLocationMarker = null;
     let enablePlayerLocationMarker = new URLSearchParams(window.location.search).has('location');
@@ -569,6 +570,7 @@ window.onload = (event) => {
         if (playerLocationMarker == null) {
             playerLocationMarker = L.marker([0, 0], {
                 icon: currentPlayerLocationIcon,
+                pane: 'popupPane',
             });
             playerLocationMarker.addTo(map);
         }
@@ -596,7 +598,7 @@ window.onload = (event) => {
         let cZ = currentFragmentPosition[2];
         if (cX != null && cY != null) {
             var marker = getPlayerLocationMarker();
-            marker.setLatLng([cY, cX]);
+            marker.setLatLng([cY + 0.5, cX + 0.5]);
         } else {
             removePlayerLocationMarker();
         }
