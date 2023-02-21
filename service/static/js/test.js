@@ -247,6 +247,50 @@ window.onload = (event) => {
         request.send(data);
     }
 
+    //
+    // layers
+    //
+
+    function loadLayerControl() {
+        let layersDivs = document.getElementsByClassName('leaflet-control-layers-overlays');
+        if (!layersDivs || layersDivs.length != 1) {
+            return;
+        }
+        let layersDiv = layersDivs[0];
+
+        var configString = localStorage.getItem("layers.toggles");
+        if (!configString) {
+            configString = '{"towns": true}';
+        }
+
+        var config = JSON.parse(configString);
+        for (let e of layersDiv.children) {
+            let name = e.innerText.trim();
+            if (name == "toggle all") continue;
+            let check = e.getElementsByTagName('input')[0];
+            if (config[name] != check.checked) {
+                check.click();
+            }
+        }
+    }
+
+    function saveLayerControl() {
+        let layersDivs = document.getElementsByClassName('leaflet-control-layers-overlays');
+        if (!layersDivs || layersDivs.length != 1) {
+            return;
+        }
+
+        let config = {};
+        let layersDiv = layersDivs[0];
+        for (let e of layersDiv.children) {
+            let name = e.innerText.trim();
+            if (name == "toggle all") continue;
+            let check = e.getElementsByTagName('input')[0];
+            config[name] = check.checked;
+        }
+
+        localStorage.setItem("layers.toggles", JSON.stringify(config));
+    }
 
     //
     // fragment handling
@@ -1324,21 +1368,27 @@ window.onload = (event) => {
     //
 
     // Initialize all map groupings - these will be used by
-    let townsGroup = new L.LayerGroup().addTo(map);
-    let npcGroup = new L.LayerGroup().addTo(map);
-    let monsterGroup = new L.LayerGroup().addTo(map);
-    let questGroup = new L.LayerGroup().addTo(map);
-    let shopGroup = new L.LayerGroup().addTo(map);
-    let bankGroup = new L.LayerGroup().addTo(map);
-    let cookingGroup = new L.LayerGroup().addTo(map);
-    let forgingGroup = new L.LayerGroup().addTo(map);
-    let botanyGroup = new L.LayerGroup().addTo(map);
-    let miningGroup = new L.LayerGroup().addTo(map);
-    let tailoringGroup = new L.LayerGroup().addTo(map);
-    let treeGroup = new L.LayerGroup().addTo(map);
-    let butcheryGroup = new L.LayerGroup().addTo(map);
-    let craftingGroup = new L.LayerGroup().addTo(map);
-    let locationGroup = new L.LayerGroup().addTo(map);
+    function createLayerGroup() {
+        return new L.LayerGroup()
+            .on('add', saveLayerControl)
+            .on('remove', saveLayerControl)
+            .addTo(map);
+    }
+    let townsGroup = createLayerGroup();
+    let npcGroup = createLayerGroup();
+    let monsterGroup = createLayerGroup();
+    let questGroup = createLayerGroup();
+    let shopGroup = createLayerGroup();
+    let bankGroup = createLayerGroup();
+    let cookingGroup = createLayerGroup();
+    let forgingGroup = createLayerGroup();
+    let botanyGroup = createLayerGroup();
+    let miningGroup = createLayerGroup();
+    let tailoringGroup = createLayerGroup();
+    let treeGroup = createLayerGroup();
+    let butcheryGroup = createLayerGroup();
+    let craftingGroup = createLayerGroup();
+    let locationGroup = createLayerGroup();
     let iconGroups = {
         'npc': npcGroup,
         'monster': monsterGroup,
@@ -1454,6 +1504,7 @@ window.onload = (event) => {
         "crafting": craftingGroup,
     };
     let layerControl = L.control.layers(baseMaps, groups).addTo(map);
+    setTimeout(loadLayerControl, 400);
 
     //
     // final setup
