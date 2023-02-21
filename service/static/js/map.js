@@ -55,7 +55,7 @@ window.onload = (event) => {
         'world1':  [ -2, -1, 2, 2 ],
         'world2':  [ -1, -1, 2, 2 ],
         'fae':     [ -1,  0, 1, 1 ],
-        'dungeon': [ -2, -1, 3, 3 ]
+        'dungeon': [ -5, -2, 3, 3 ]
     };
 
     function getMapName() {
